@@ -1,0 +1,11 @@
+格式 我还没有统一 因为可能之后还要改
+字体14 标题20
+
+1. PC和IF/ID应该没啥问题吧.. cs_o那块是一个使能信号 反正到AXI4 也要改
+2. ID这块我是综合了我自己的和《手把手》
+	exe_aluop_i 		exe级的操作码的输入 用来判断是否是load相关
+	exe_regfile_write_addr_i	exe级往regfile里面写的地址 也是用来判断是否是load相关
+	mem_to_reg_o		(待完善) 写回阶段究竟是写内存读出的数据 还是alu的数据
+				这个你可以用你那个选择器？？
+	pc_return_addr_o		链接地址 这个我还没实现 不知道你那里有没有
+	
