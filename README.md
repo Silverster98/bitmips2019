@@ -3,8 +3,13 @@
 
 ### 目录结构：
 |- bitmips2019
+
 |--- bitmips/ mips具体实现的 vivado 项目
+
 |------ bitmips.xpr :bitmips vivado 工程，可直接使用vivado打开 
+
 |--- mips框图说明.txt :架构图说明
+
 |--- README.md :本文档
+
 |--- .gitignore :gitignore
