@@ -9,8 +9,8 @@
 `define ZEROWORD5      5'b00000
 
 // aluop
-`define ALUOP_BUS      5:0
-`define ALUOP_WIDTH    6
+`define ALUOP_BUS      7:0
+`define ALUOP_WIDTH    8
 
 // instruction
 `define INST_ADDR_BUS  31:0
