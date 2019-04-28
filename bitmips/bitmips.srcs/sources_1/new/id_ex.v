@@ -64,7 +64,7 @@ module id_ex(
             ex_rs_data <= `ZEROWORD32;
             ex_rt_data <= `ZEROWORD32;
             ex_instr <= `ZEROWORD32;
-            ex_aluop <= 6'b000000;
+            ex_aluop <= 8'h00;
             ex_regfile_write_addr <= 5'b00000;
             ex_now_in_delayslot <= 1'b0;
             ex_exception_type <= `ZEROWORD32;
