@@ -26,8 +26,8 @@ module id_ex(
     input wire[`GPR_BUS] id_hilo_data,
     input wire[`GPR_BUS] id_cp0_data,
     input wire[15:0] id_imm16,
-    input wire[`GPR_ADDR_BUS] id_rs_read_addr,
-    input wire[`GPR_ADDR_BUS] id_rt_read_addr,
+//    input wire[`GPR_ADDR_BUS] id_rs_read_addr,
+//    input wire[`GPR_ADDR_BUS] id_rt_read_addr,
     input wire id_hilo_read_addr,
     input wire[`CP0_ADDR_BUS] id_cp0_read_addr,
     
@@ -51,8 +51,8 @@ module id_ex(
     output reg[`GPR_BUS] ex_sign_extend_imm16,
     output reg[`GPR_BUS] ex_zero_extend_imm16,
     output reg[`GPR_BUS] ex_load_upper_imm16,
-    output reg[`GPR_ADDR_BUS] ex_rs_read_addr,
-    output reg[`GPR_ADDR_BUS] ex_rt_read_addr,
+//    output reg[`GPR_ADDR_BUS] ex_rs_read_addr,
+//    output reg[`GPR_ADDR_BUS] ex_rt_read_addr,
     output reg ex_hilo_read_addr,
     output reg[`CP0_ADDR_BUS] ex_cp0_read_addr,
     output reg ex_id_now_in_delayslot
@@ -80,8 +80,8 @@ module id_ex(
             ex_sign_extend_imm16 <= `ZEROWORD32;
             ex_zero_extend_imm16 <= `ZEROWORD32;
             ex_load_upper_imm16 <= `ZEROWORD32;
-            ex_rs_read_addr <= 5'b00000;
-            ex_rt_read_addr <= 5'b00000;
+//            ex_rs_read_addr <= 5'b00000;
+//            ex_rt_read_addr <= 5'b00000;
             ex_hilo_read_addr <= 1'b0;
             ex_cp0_read_addr <= 5'b00000;
             ex_id_now_in_delayslot <= 1'b0;
@@ -107,8 +107,8 @@ module id_ex(
                 ex_sign_extend_imm16 <= {{16{id_imm16[15]}}, id_imm16};
                 ex_zero_extend_imm16 <= {16'h0000, id_imm16};
                 ex_load_upper_imm16 <= {id_imm16, 16'h0000};
-                ex_rs_read_addr <= id_rs_read_addr;
-                ex_rt_read_addr <= id_rt_read_addr;
+//                ex_rs_read_addr <= id_rs_read_addr;
+//                ex_rt_read_addr <= id_rt_read_addr;
                 ex_hilo_read_addr <= id_hilo_read_addr;
                 ex_cp0_read_addr <= id_cp0_read_addr;
                 ex_id_now_in_delayslot <= id_next_in_delayslot;

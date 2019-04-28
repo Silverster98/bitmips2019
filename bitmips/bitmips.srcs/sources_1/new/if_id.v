@@ -17,7 +17,7 @@ module if_id(
             id_pc <= `ZEROWORD32;
             id_instr <= `ZEROWORD32;
         end else begin
-            if (stall == `STOP) begin
+            if (stall == `NOSTOP) begin
                 id_pc <= if_pc;
                 id_instr <= if_instr;
             end
