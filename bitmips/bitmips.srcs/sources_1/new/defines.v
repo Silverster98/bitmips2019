@@ -1,10 +1,10 @@
-// 通用
+// common
 `define RST_ENABLE     1'b1
 `define RST_DISABLE    1'b0
-`define STOP           1'b1           // 流水线阻�?
-`define NOSTOP         1'b0           // 流水线不阻塞
-`define BRANCH_ENABLE  1'b1           // 发生分支
-`define BRANCH_DISABLE 1'b0           // 不发生分�?
+`define STOP           1'b1           // stop
+`define NOSTOP         1'b0           // no stop
+`define BRANCH_ENABLE  1'b1           // branch
+`define BRANCH_DISABLE 1'b0           // no branch
 `define ZEROWORD32     32'h00000000
 `define ZEROWORD5      5'b00000
 
@@ -28,10 +28,14 @@
 `define CP0_WIDTH      32
 
 // exception
-`define EXCEPTION_ON   1'b1           // 发生异常
-`define EXCEPTION_OFF  1'b0           // 无异常发�?
+`define EXCEPTION_ON   1'b1           // exception
+`define EXCEPTION_OFF  1'b0           // no exception
 `define EXCEP_TYPE_BUS 31:0
 `define EXCEP_TYPE_WIDTH 32
+
+// ram
+`define RAM_ADDR_BUS   31:0
+`define RAM_ADDR_WIDTH 32
 
 // ID select
 `define ID_AND     6'b100100
@@ -107,3 +111,7 @@
 `define ALUOP_SLT     8'b00001110
 `define ALUOP_SLL     8'b00001111
 `define ALUOP_ERET    8'b00010000
+`define ALUOP_LB      8'b00010001
+`define ALUOP_LBU     8'b00010010
+`define ALUOP_LH      8'b00010011
+`define ALUOP_LHU     8'b00010100
