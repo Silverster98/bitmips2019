@@ -27,6 +27,7 @@
 `define CP0_ADDR_BUS   4:0
 `define CP0_WIDTH      32
 
+
 // exception
 `define EXCEPTION_ON   1'b1           // exception
 `define EXCEPTION_OFF  1'b0           // no exception
