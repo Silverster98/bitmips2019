@@ -27,12 +27,12 @@
 `define CP0_ADDR_BUS   4:0
 `define CP0_WIDTH      32
 
-
 // exception
 `define EXCEPTION_ON   1'b1           // exception
 `define EXCEPTION_OFF  1'b0           // no exception
-`define EXCEP_TYPE_BUS 31:0
+`define EXCEP_TYPE_BUS 5:0
 `define EXCEP_TYPE_WIDTH 32
+
 
 // ram
 `define RAM_ADDR_BUS   31:0

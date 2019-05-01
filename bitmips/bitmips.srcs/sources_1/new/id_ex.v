@@ -1,4 +1,5 @@
 `include "defines.v"
+`include "CP0.svh"
 
 module id_ex(
     input wire rst,
@@ -14,7 +15,6 @@ module id_ex(
     input wire[`GPR_ADDR_BUS] id_regfile_write_addr,
     input wire id_now_in_delayslot,
     input wire id_next_in_delayslot,
-    input wire[`EXCEP_TYPE_BUS] id_exception_type,
     input wire id_stall_request,
     input wire id_regfile_write_enable,
     input wire id_ram_write_enable,
@@ -26,6 +26,10 @@ module id_ex(
     input wire[`GPR_BUS] id_hilo_data,
     input wire[`GPR_BUS] id_cp0_data,
     input wire[15:0] id_imm16,
+    input wire id_exception_valid,
+    input wire[`EXCEP_TYPE_BUS] id_exception_type,
+    input wire[`INST_ADDR_BUS] id_exception_addr,
+    
 //    input wire[`GPR_ADDR_BUS] id_rs_read_addr,
 //    input wire[`GPR_ADDR_BUS] id_rt_read_addr,
     input wire id_hilo_read_addr,
@@ -38,7 +42,6 @@ module id_ex(
     output reg[`ALUOP_BUS] ex_aluop,
     output reg[`GPR_ADDR_BUS] ex_regfile_write_addr,
     output reg ex_now_in_delayslot,
-    output reg[`EXCEP_TYPE_BUS] ex_exception_type,
     output reg ex_regfile_write_enable,
     output reg ex_ram_write_enable,
     output reg ex_hi_write_enable,
@@ -55,7 +58,10 @@ module id_ex(
 //    output reg[`GPR_ADDR_BUS] ex_rt_read_addr,
     output reg ex_hilo_read_addr,
     output reg[`CP0_ADDR_BUS] ex_cp0_read_addr,
-    output reg ex_id_now_in_delayslot
+    output reg ex_id_now_in_delayslot,
+    output reg ex_exception_valid,
+    output reg [`EXCEP_TYPE_BUS] ex_exception_type,
+    output reg [`INST_ADDR_BUS] ex_exception_addr
     );
     
     always @ (posedge clk) begin
@@ -85,6 +91,9 @@ module id_ex(
             ex_hilo_read_addr <= 1'b0;
             ex_cp0_read_addr <= 5'b00000;
             ex_id_now_in_delayslot <= 1'b0;
+            ex_exception_valid <= 1'b0;
+            ex_exception_type <= 6'h0;
+            ex_exception_addr <= `ZEROWORD32;
         end else begin
             if (stall == `NOSTOP) begin
                 ex_pc <= id_pc;
@@ -112,6 +121,9 @@ module id_ex(
                 ex_hilo_read_addr <= id_hilo_read_addr;
                 ex_cp0_read_addr <= id_cp0_read_addr;
                 ex_id_now_in_delayslot <= id_next_in_delayslot;
+                ex_exception_valid <= id_exception_valid;
+                ex_exception_type <= id_exception_type;
+                ex_exception_addr <= id_exception_addr;
             end
         end
     end

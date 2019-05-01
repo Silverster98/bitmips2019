@@ -1,4 +1,5 @@
 `include "defines.v"
+`include "CP0.svh"
 module id
 (
 input  wire                   rst,
@@ -15,7 +16,11 @@ input  wire [`GPR_BUS]        bypass_mem_regfile_write_data_i,
 input  wire [`GPR_ADDR_BUS]   exe_regfile_write_addr_i,
 input  wire                   now_in_delayslot_i,
 input  wire                   exe_mem_to_reg_i,
-            
+input  wire                   exception_valid_i,
+input  wire [`EXCEP_TYPE_BUS] exception_type_i,
+input  wire [`INST_ADDR_BUS]  exception_addr_i,
+
+
 output reg  [`INST_BUS]       pc_o,
 output reg  [`INST_BUS]       instr_o,
 output reg  [`GPR_BUS]        rs_data_o,
@@ -24,7 +29,6 @@ output reg  [`ALUOP_BUS]      aluop_o,
 output reg  [`GPR_ADDR_BUS]   regfile_write_addr_o,
 output reg                    now_in_delayslot_o,  
 output reg                    next_in_delayslot_o,     
-output wire [`EXCEP_TYPE_BUS] exception_type_o,
 output wire                   id_stall_request_o,     
 output reg                    regfile_write_enable_o,                
 output reg                    ram_write_enable_o,
@@ -37,13 +41,13 @@ output reg  [`GPR_BUS]        hilo_data_o,
 output reg	[`GPR_BUS]        cp0_data_o,
 output reg  [15:0]            imm16_o,
 output reg                    branch_enable_o,
-output reg  [`INST_BUS]       branch_addr_o
+output reg  [`INST_BUS]       branch_addr_o,
+output wire                   exception_valid_o,
+output wire [`EXCEP_TYPE_BUS] exception_type_o,
+output wire [`INST_ADDR_BUS]  exception_addr_o
 );
 
 reg instr_valid;
-reg exception_syscall;
-reg exception_eret;
-reg exception_break;
 reg rs_read_enable;
 reg rt_read_enable;
 reg rs_stall_request;
@@ -69,8 +73,9 @@ assign pc_add4 = pc_i + 32'h4;
 assign pc_add8 = pc_i + 32'h8;
 
 assign id_stall_request_o = rs_stall_request | rt_stall_request;
-assign exception_type_o = {exception_syscall,exception_eret,exception_break,(~instr_valid),28'b0};
-
+assign {exception_valid_o,exception_type_o} = exception_valid_i ? {exception_valid_i,exception_type_i}
+                                            :instr_valid ?{1'b0,6'b111111}:{1'b1,`CP0_EX_RESERVED};
+assign exception_addr_o = exception_addr_i;
 // load relevant
 always @ (*)
 begin
@@ -359,12 +364,10 @@ begin
 			if(funct == `ID_SYSCALL) begin
 				aluop_o <= `ALUOP_SYSCALL;
 				instr_valid <= 1'b1;
-				exception_syscall <= 1'b1;
 			end
 			if(funct == `ID_BREAK) begin
 				aluop_o <= `ALUOP_BREAK;
 				instr_valid <= 1'b1;
-				exception_break <= 1'b1;
 			end
 		end
 		6'b000001: begin//bgez bltz bgezal bltzal
@@ -565,10 +568,14 @@ begin
 		end
 		if(instr_i == `ID_ERET) begin
 			aluop_o <= `ALUOP_ERET;
-			exception_eret <= 1'b1;
+		  	instr_valid <= 1'b1; 			
+	    end else if(instr_i[31:21] == 11'b01000000000 && instr_i[10:3] == 8'b00000000) begin
+			aluop_o <= `ALUOP_MFC0;		
 			instr_valid <= 1'b1;
+        end else if(instr_i[31:21] == 11'b01000000100 && instr_i[10:3] == 8'b00000000) begin
+            aluop_o <= `ALUOP_MTC0;
+            instr_valid <= 1'b1;			
 		end
-		// mfc0 mtc0 sel??
     end
 end
 endmodule

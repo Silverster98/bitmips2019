@@ -23,10 +23,7 @@ module mem(
     input wire mem_to_reg_i,
     input wire[`RAM_ADDR_BUS] ram_read_addr_i,
     input wire[`GPR_BUS] ram_read_data_i,
-    
-    input wire[`CP0_BUS] cp0_cause_i,
-    input wire[`CP0_BUS] cp0_status_i,
-    
+   
     output reg[`INST_ADDR_BUS] store_pc_o,
     output reg[`INST_ADDR_BUS] exception_pc_o,
     output reg exception_o,
