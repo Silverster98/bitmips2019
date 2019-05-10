@@ -43,6 +43,7 @@ module mem(
     output reg[`GPR_BUS] alu_data_o,
     output reg[`GPR_BUS] ram_data_o,
     
+    output reg[3:0] ram_write_select_o, // byte select, width = 4bit for 4 byte,bit 1 is write, bit 0 is no write
     output reg ram_write_enable_o,
     output reg[`RAM_ADDR_BUS] ram_write_addr_o,
     output reg[`GPR_BUS] ram_write_data_o,
@@ -115,6 +116,50 @@ module mem(
                 end
                 `ALUOP_LW : begin
                     ram_data_o <= ram_read_data_i;
+                end
+                default : begin
+                    ram_data_o <= `ZEROWORD32;
+                end
+            endcase
+        end
+    end
+    
+    always @ (*) begin
+        if (rst == `RST_ENABLE) begin
+            ram_write_select_o <= 4'b0000;
+            ram_write_enable_o <= 1'b0;
+            ram_write_addr_o <= `ZEROWORD32;
+            ram_write_data_o <= `ZEROWORD32;
+        end else begin
+            ram_write_addr_o <= {ram_write_addr_i[31:2], 2'b00};
+            ram_write_enable_o <= ram_write_enable_i;
+            
+            case (aluop_i)
+                `ALUOP_SB : begin
+                    ram_write_data_o <= {ram_write_data_i[7:0], ram_write_data_i[7:0], ram_write_data_i[7:0], ram_write_data_i[7:0]};
+                    case (ram_write_addr_i[1:0])
+                        2'b00 : ram_write_select_o <= 4'b0001;
+                        2'b01 : ram_write_select_o <= 4'b0010;
+                        2'b10 : ram_write_select_o <= 4'b0100;
+                        2'b11 : ram_write_select_o <= 4'b1000;
+                        default : ram_write_select_o <= 4'b0000;
+                    endcase
+                end
+                `ALUOP_SH : begin
+                    ram_write_data_o <= {ram_write_data_i[15:0], ram_write_data_i[15:0]};
+                    case (ram_write_addr_i[1:0])
+                        2'b00 : ram_write_select_o <= 4'b0011;
+                        2'b10 : ram_write_select_o <= 4'b1100;
+                        default : ram_write_select_o <= 4'b0000;
+                    endcase
+                end
+                `ALUOP_SW : begin
+                    ram_write_data_o <= ram_write_data_i;
+                    ram_write_select_o <= 4'b1111;
+                end
+                default : begin
+                    ram_write_data_o <= ram_write_data_i;
+                    ram_write_select_o <= 4'b0000;
                 end
             endcase
         end
