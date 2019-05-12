@@ -39,10 +39,9 @@ output reg                    mem_to_reg_o,
 output reg  [`INST_BUS]       pc_return_addr_o,   
 output reg  [`GPR_BUS]        hilo_data_o,
 output reg	[`GPR_BUS]        cp0_data_o,
-output reg  [15:0]            imm16_o,
+output wire [15:0]            imm16_o,
 output reg                    branch_enable_o,
 output reg  [`INST_BUS]       branch_addr_o,
-output wire                   exception_valid_o,
 output wire [`EXCEP_TYPE_BUS] exception_type_o,
 output wire [`INST_ADDR_BUS]  exception_addr_o
 );
@@ -71,10 +70,11 @@ wire [31:0] signed_extend = {{16{instr_i[15]}},instr_i[15:0]};
 
 assign pc_add4 = pc_i + 32'h4;
 assign pc_add8 = pc_i + 32'h8;
+assign imm16_o = instr_i[15:0];
 
 assign id_stall_request_o = rs_stall_request | rt_stall_request;
-assign {exception_valid_o,exception_type_o} = exception_valid_i ? {exception_valid_i,exception_type_i}
-                                            :instr_valid ?{1'b0,6'b111111}:{1'b1,`CP0_EX_RESERVED};
+assign exception_type_o = instr_valid ? {exception_type_i[31],1'b0,exception_type_i[29:0]} :
+                 {exception_type_i[31],1'b1,exception_type_i[29:0]};
 assign exception_addr_o = exception_addr_i;
 // load relevant
 always @ (*)
@@ -144,7 +144,6 @@ begin
 		mem_to_reg_o <= 1'b0;
 		hilo_data_o <= `ZEROWORD32;
 		cp0_data_o <= `ZEROWORD32;
-		imm16_o <= 16'h0;
     end else begin
         pc_o <= pc_i;
 		instr_o <= instr_i;
@@ -160,7 +159,6 @@ begin
         lo_write_enable_o <= 1'b0;
         cp0_write_enable_o <= 1'b0;
 		mem_to_reg_o <= 1'b0;		
-		imm16_o <= instr_i[15:0];
         rs_read_enable <= 1'b0;          
         rt_read_enable <= 1'b0; 
 		instr_valid <= 1'b0;
@@ -545,6 +543,30 @@ begin
 			regfile_write_enable_o <= 1'b1;
 			rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 		end
+		`ID_MULT: begin    
+		    aluop_o <= `ALUOP_MULT;
+		    instr_valid <= 1'b1;
+		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+		 end
+        `ID_MULTU: begin    
+		    aluop_o <= `ALUOP_MULTU;
+		    instr_valid <= 1'b1;
+		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+		 end
+        `ID_DIV: begin    
+		    aluop_o <= `ALUOP_DIV;
+		    instr_valid <= 1'b1;
+		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+		 end
+        `ID_DIVU: begin    
+		    aluop_o <= `ALUOP_DIVU;
+		    instr_valid <= 1'b1;
+		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+		 end
 		endcase
 		if(instr_i[31:21] == 11'b00000000000) begin
 			if(funct == `ID_SLL) begin

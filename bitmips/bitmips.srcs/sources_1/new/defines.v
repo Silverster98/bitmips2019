@@ -27,12 +27,27 @@
 `define CP0_ADDR_BUS   4:0
 `define CP0_WIDTH      32
 
+//cause reg
+`define EXL             1
+`define ERL             2
+`define BD              31
+
 // exception
 `define EXCEPTION_ON   1'b1           // exception
 `define EXCEPTION_OFF  1'b0           // no exception
-`define EXCEP_TYPE_BUS 5:0
+`define EXCEP_TYPE_BUS 31:0
+`define EXCEP_CODE_BUS 4:0
 `define EXCEP_TYPE_WIDTH 32
 
+`define EXCEP_CODE_INT  5'h0          // interrupt
+`define EXCEP_CODE_ADEL 5'h4          // pc fetch or lw addr error
+`define EXCEP_CODE_ADES 5'h5          // sw addr 
+`define EXCEP_CODE_SYS  5'h8          // syscall
+`define EXCEP_CODE_BP   5'h9          // break point
+`define EXCEP_CODE_RI   5'ha          // reserved instr
+`define EXCEP_CODE_OV   5'hc          // overflow      
+`define EXCEP_CODE_TR   5'hd          // trap
+`define EXCEP_CODE_ERET 5'h1f         // eret treated as exception
 
 // ram
 `define RAM_ADDR_BUS   31:0
@@ -108,7 +123,7 @@
 `define ALUOP_DIV     8'b00001010
 `define ALUOP_DIVU    8'b00001011
 `define ALUOP_MULT    8'b00001100
-`define ALUOP_MULU    8'b00001101
+`define ALUOP_MULTU   8'b00001101
 `define ALUOP_AND     8'b00001110
 `define ALUOP_ANDI    8'b00001111
 `define ALUOP_LUI     8'b00010000
@@ -151,3 +166,5 @@
 `define ALUOP_ERET    8'b00110101
 `define ALUOP_MFC0    8'b00110110
 `define ALUOP_MTC0    8'b00110111
+
+

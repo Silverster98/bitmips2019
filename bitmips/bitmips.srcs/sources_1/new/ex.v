@@ -364,7 +364,7 @@ function [63:0] get_mult_data(input [7:0] aluop, input [31:0] rs_value, input [3
             `ALUOP_MULT : begin
                 get_mult_data = $signed(rs_value) * $signed(rt_value);
             end
-            `ALUOP_MULU : begin
+            `ALUOP_MULTU : begin
                 get_mult_data = $unsigned(rs_value) * $unsigned(rt_value);
             end
             default : begin
@@ -382,7 +382,7 @@ function [63:0] get_hilo_write_data(input [7:0] aluop, input [63:0] mul_data, in
             `ALUOP_MTHI, `ALUOP_MTLO : begin
                 get_hilo_write_data = {rs_value, rs_value};
             end
-            `ALUOP_MULT, `ALUOP_MULU : begin
+            `ALUOP_MULT, `ALUOP_MULTU : begin
                 get_hilo_write_data = mul_data;
             end
             `ALUOP_DIV, `ALUOP_DIVU : begin
