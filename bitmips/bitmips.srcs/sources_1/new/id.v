@@ -1,5 +1,4 @@
 `include "defines.v"
-`include "CP0.svh"
 module id
 (
 input  wire                   rst,
@@ -16,7 +15,6 @@ input  wire [`GPR_BUS]        bypass_mem_regfile_write_data_i,
 input  wire [`GPR_ADDR_BUS]   exe_regfile_write_addr_i,
 input  wire                   now_in_delayslot_i,
 input  wire                   exe_mem_to_reg_i,
-input  wire                   exception_valid_i,
 input  wire [`EXCEP_TYPE_BUS] exception_type_i,
 input  wire [`INST_ADDR_BUS]  exception_addr_i,
 
@@ -36,9 +34,9 @@ output reg                    hi_write_enable_o,
 output reg                    lo_write_enable_o,
 output reg                    cp0_write_enable_o,
 output reg                    mem_to_reg_o,
-output reg  [`INST_BUS]       pc_return_addr_o,   
-output reg  [`GPR_BUS]        hilo_data_o,
-output reg	[`GPR_BUS]        cp0_data_o,
+output reg  [`INST_BUS]       pc_return_addr_o,  
+output reg  [`CP0_ADDR_BUS]   cp0_read_addr_o,   
+output reg                    hilo_read_addr_o,
 output wire [15:0]            imm16_o,
 output reg                    branch_enable_o,
 output reg  [`INST_BUS]       branch_addr_o,
@@ -51,7 +49,6 @@ reg rs_read_enable;
 reg rt_read_enable;
 reg rs_stall_request;
 reg rt_stall_request;
-reg hilo_read_addr_o;
 reg [31:0] imm;
 
 wire op = instr_i[31:26];
@@ -140,10 +137,9 @@ begin
 		ram_write_enable_o <= 1'b0;
 		hi_write_enable_o <= 1'b0;
 		lo_write_enable_o <= 1'b0;
+		hilo_read_addr_o <= 1'b0;
         cp0_write_enable_o <= 1'b0;
 		mem_to_reg_o <= 1'b0;
-		hilo_data_o <= `ZEROWORD32;
-		cp0_data_o <= `ZEROWORD32;
     end else begin
         pc_o <= pc_i;
 		instr_o <= instr_i;
@@ -594,9 +590,12 @@ begin
 	    end else if(instr_i[31:21] == 11'b01000000000 && instr_i[10:3] == 8'b00000000) begin
 			aluop_o <= `ALUOP_MFC0;		
 			instr_valid <= 1'b1;
+			regfile_write_enable_o <= 1'b1;
+			cp0_read_addr_o <= rd;
         end else if(instr_i[31:21] == 11'b01000000100 && instr_i[10:3] == 8'b00000000) begin
             aluop_o <= `ALUOP_MTC0;
-            instr_valid <= 1'b1;			
+            instr_valid <= 1'b1;	
+            cp0_write_enable_o <= 1'b1;		
 		end
     end
 end

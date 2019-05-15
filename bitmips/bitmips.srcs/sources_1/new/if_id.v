@@ -7,11 +7,9 @@ module if_id(
     input wire [`INST_BUS]       if_instr,
     input wire                   exception,
     input wire                   stall,
-    input wire                   if_exception_valid,
 	input wire [`EXCEP_TYPE_BUS] if_exception_type,
 	input wire [`INST_ADDR_BUS]  if_exception_addr,
 		
-	output reg                   id_exception_valid,
 	output reg [`EXCEP_TYPE_BUS] id_exception_type,
 	output reg [`INST_ADDR_BUS]  id_exception_addr,
     output reg [`INST_ADDR_BUS]  id_pc,
@@ -22,14 +20,12 @@ module if_id(
         if (rst == `RST_ENABLE || exception == `EXCEPTION_ON) begin
             id_pc <= `ZEROWORD32;
             id_instr <= `ZEROWORD32;
-            id_exception_valid <= 1'b0;
             id_exception_type <= 6'h0;
             id_exception_addr <= `ZEROWORD32;
         end else begin
             if (stall == `NOSTOP) begin
                 id_pc <= if_pc;
                 id_instr <= if_instr;
-                id_exception_valid <= if_exception_valid;
                 id_exception_type <= if_exception_type;
                 id_exception_addr <= if_exception_addr; 
             end

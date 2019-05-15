@@ -1,5 +1,4 @@
 `include "defines.v"
-`include "CP0.svh"
 module pc(
 input wire                    rst,
 input wire                    clk,
