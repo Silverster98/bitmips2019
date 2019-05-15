@@ -65,7 +65,7 @@ module ex(
     
     reg is_overflow;
     wire exception_temp;
-    assign exception_temp = {exception_type_i[31:12], is_overflow, exception_type_i[10:8], 8'h00};
+    assign exception_temp = {exception_type_i[31:30], is_overflow, exception_type_i[28:0]};
     
     wire[`GPR_BUS] alu_output_data;
     wire[`GPR_BUS] hilo_data_forward, cp0_data_forward;
