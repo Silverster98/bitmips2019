@@ -9,7 +9,6 @@ input wire                    branch_enable_i,
 input wire  [`INST_ADDR_BUS]  branch_addr_i,
 
 output wire [`EXCEP_TYPE_BUS] exception_type_o,
-output wire [`INST_ADDR_BUS]  exception_addr_o,
 output reg  [`INST_ADDR_BUS]  pc_o
 //    output reg cs_o
     );
@@ -52,5 +51,4 @@ function [5:0] get_exception_type(input [31:0] ibus_addr/*input ibus_read, input
 endfunction
 
 assign exception_type_o = get_exception_type(pc_o);
-assign exception_addr_o = pc_o;
 endmodule

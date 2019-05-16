@@ -16,8 +16,6 @@ input  wire [`GPR_ADDR_BUS]   exe_regfile_write_addr_i,
 input  wire                   now_in_delayslot_i,
 input  wire                   exe_mem_to_reg_i,
 input  wire [`EXCEP_TYPE_BUS] exception_type_i,
-input  wire [`INST_ADDR_BUS]  exception_addr_i,
-
 
 output reg  [`INST_BUS]       pc_o,
 output reg  [`INST_BUS]       instr_o,
@@ -40,8 +38,7 @@ output reg                    hilo_read_addr_o,
 output wire [15:0]            imm16_o,
 output reg                    branch_enable_o,
 output reg  [`INST_BUS]       branch_addr_o,
-output wire [`EXCEP_TYPE_BUS] exception_type_o,
-output wire [`INST_ADDR_BUS]  exception_addr_o
+output wire [`EXCEP_TYPE_BUS] exception_type_o
 );
 
 reg instr_valid;
@@ -72,7 +69,6 @@ assign imm16_o = instr_i[15:0];
 assign id_stall_request_o = rs_stall_request | rt_stall_request;
 assign exception_type_o = instr_valid ? {exception_type_i[31],1'b0,exception_type_i[29:0]} :
                  {exception_type_i[31],1'b1,exception_type_i[29:0]};
-assign exception_addr_o = exception_addr_i;
 // load relevant
 always @ (*)
 begin
