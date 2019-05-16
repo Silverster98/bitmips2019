@@ -11,10 +11,10 @@ input wire [`EXCEP_TYPE_BUS] exception_type_i,
 input wire [`INST_BUS]       pc_i,    
 input wire [`INST_BUS]       exception_addr_i,
 input wire [5:0]             int_i,
-input wire                   now_in_delayslot,
+input wire                   now_in_delayslot_i,
 output reg [`CP0_BUS]        cp0_read_data_o,
-output reg [`CP0_BUS]        cp0_badvaddr_o,
-output reg [`CP0_BUS]        cp0_epc_o,    
+//output reg [`CP0_BUS]        cp0_badvaddr_o,
+output reg [`CP0_BUS]        cp0_return_pc_o,    
 output reg                   timer_int_o,    
 output reg                   flush_o
 );
@@ -31,7 +31,7 @@ reg [`CP0_BUS] cp0_badvaddr;
 reg timer_int;
 reg rubbish;
 reg flush;
-
+reg [`CP0_BUS] cp0_return_pc;
 
 function is_exception_asserted(input rubbish);
 begin
@@ -95,10 +95,10 @@ begin
 end
 endfunction
 
-function assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] offset);
+function assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] int_offset);
 begin
     if(cp0_cause[`EXL] ==0) begin
-        if(now_in_delayslot == 1'b1) begin
+        if(now_in_delayslot_i == 1'b1) begin
             cp0_epc = pc_i - 4;
             cp0_cause[`BD] = 1;
         end else begin
@@ -107,6 +107,7 @@ begin
         end
     end
     cp0_status[`EXL] = 1;
+    cp0_return_pc = int_offset + 32'hbfc00000;
     cp0_cause[6:2] = exception_code;
 end
 endfunction
@@ -128,6 +129,7 @@ endfunction
 function assert_exception_return(input [`EXCEP_CODE_BUS] exception_code);
 begin
     cp0_status[`EXL] = 0;
+    cp0_return_pc = cp0_epc;
 end
 endfunction
 
@@ -177,7 +179,7 @@ begin
         cp0_read_data_o = cp0_read(cp0_read_addr_i);
         if(cp0_write_enable_i)
             cp0_write(cp0_write_addr_i,cp0_write_data_i);
-        cp0_epc_o <= cp0_epc;
+        cp0_return_pc_o <= cp0_return_pc;
         timer_int_o <= timer_int;
         flush_o <= flush;
     end
