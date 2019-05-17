@@ -56,6 +56,9 @@ endfunction
 
 function [31:0] cp0_read(input [`CP0_ADDR_BUS] read_addr);
 begin
+    if(cp0_write_enable_i && read_addr == cp0_write_addr_i)
+        cp0_read = cp0_write_data_i;
+    else begin
     case(read_addr)
         5'd9: //count:
             cp0_read = cp0_count;
@@ -72,6 +75,7 @@ begin
         5'd16:
             cp0_read = cp0_config;
     endcase
+    end
 end
 endfunction
 
