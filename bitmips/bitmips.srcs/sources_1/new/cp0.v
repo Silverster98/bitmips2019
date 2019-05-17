@@ -160,6 +160,12 @@ begin
 end
 endfunction
 
+always @(*)
+begin
+    cp0_read_data_o = cp0_read(cp0_read_addr_i);
+end
+
+
 always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
@@ -180,7 +186,7 @@ begin
             de_assert_exception();      
         update_timer(rubbish);
         handle_exception(exception_type_i);
-        cp0_read_data_o = cp0_read(cp0_read_addr_i);
+        //cp0_read_data_o = cp0_read(cp0_read_addr_i);
         if(cp0_write_enable_i)
             cp0_write(cp0_write_addr_i,cp0_write_data_i);
         cp0_return_pc_o <= cp0_return_pc;
