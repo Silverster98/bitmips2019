@@ -112,13 +112,14 @@ module mips_top(
     wire[`GPR_BUS] mem_wb_hi_write_data, mem_wb_lo_write_data;
     
     
-//    wire is_exception;
+    wire is_exception;
+    wire [`INST_ADDR_BUS] cp0_return_pc;
     
     pc mips_pc(
         .rst(rst),
         .clk(clk),
         .stall(exe_stall_request),
-        .exception(),
+        .exception(is_exception),
         .exception_pc_i(),
         .branch_enable_i(id_branch_enable),
         .branch_addr_i(id_branch_addr),
@@ -133,7 +134,7 @@ module mips_top(
         .clk(clk),
         .if_pc(if_pc_if_id),
         .if_instr(),
-        .exception(),
+        .exception(is_exception),
         .stall(exe_stall_request),
         .if_exception_type(if_exception_type_if_id),
         
@@ -206,7 +207,7 @@ module mips_top(
         .id_imm16(id_imm16_id_ex),
         .id_hilo_read_addr(id_hilo_read_addr_id_ex),
         .id_cp0_read_addr(id_cp0_read_addr_id_ex),
-        .exception(),
+        .exception(is_exception),
         .stall(exe_stall_request),
         .clk(clk),
         .rst(rst),
@@ -314,7 +315,7 @@ module mips_top(
         .exe_lo_write_data(ex_lo_write_data_ex_mem),
         .exe_cp0_write_data(ex_cp0_write_data_ex_mem),
         .exe_mem_to_reg(ex_mem_to_reg_ex_mem),
-        .exception(),
+        .exception(is_exception),
         .stall(exe_stall_request),
         .rst(rst),
         .clk(clk),
@@ -412,7 +413,7 @@ module mips_top(
 //        .mem_alu_data(mem_alu_data_mem_wb),
 //        .mem_ram_data(mem_ram_data_mem_wb),
         .mem_regfile_write_data(mem_regfile_write_data_mem_wb),
-        .exception(),
+        .exception(is_exception),
         .rst(rst),
         .clk(clk),
         
@@ -453,6 +454,20 @@ module mips_top(
     
     // ==
     cp0 mips_cp0(
-        
+        .clk(clk),
+        .rst(rst),
+        .cp0_read_addr_i(id_cp0_read_addr_id_ex),
+        .cp0_write_enable_i(mem_cp0_write_enable),
+        .cp0_write_addr_i(mem_cp0_write_addr),
+        .cp0_write_data_i(mem_cp0_write_data),
+        .exception_type_i(mem_exception_type),
+        .pc_i(mem_store_pc),    
+        .exception_addr_i(mem_access_mem_addr),
+        .int_i(),
+        .now_in_delayslot_i(mem_now_in_delayslot),
+        .cp0_read_data_o(cp0_data_id_ex),
+        .cp0_return_pc_o(cp0_return_pc),    
+        .timer_int_o(),    
+        .flush_o(is_exception)
     );
 endmodule
