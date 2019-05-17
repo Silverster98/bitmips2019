@@ -60,7 +60,7 @@ module id_ex(
     );
     
     always @ (posedge clk) begin
-        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON) begin
+        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON || id_stall_request == 1'b1) begin
             ex_pc <= `ZEROWORD32;
             ex_rs_data <= `ZEROWORD32;
             ex_rt_data <= `ZEROWORD32;
