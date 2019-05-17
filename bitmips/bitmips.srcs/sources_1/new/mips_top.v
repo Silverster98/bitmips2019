@@ -112,12 +112,12 @@ module mips_top(
     wire[`GPR_BUS] mem_wb_hi_write_data, mem_wb_lo_write_data;
     
     
-    wire is_exception;
+//    wire is_exception;
     
     pc mips_pc(
         .rst(rst),
         .clk(clk),
-        .stall(),
+        .stall(exe_stall_request),
         .exception(),
         .exception_pc_i(),
         .branch_enable_i(id_branch_enable),
@@ -134,7 +134,7 @@ module mips_top(
         .if_pc(if_pc_if_id),
         .if_instr(),
         .exception(),
-        .stall(),
+        .stall(exe_stall_request),
         .if_exception_type(if_exception_type_if_id),
         
         .id_instr(if_id_instr_id),
@@ -179,7 +179,6 @@ module mips_top(
         .hilo_read_addr_o(id_hilo_read_addr_id_ex),
         .imm_16_o(id_imm16_id_ex),
         .exception_type_o(id_exception_type_id_ex),
-//        .exception_addr_o(),
         .branch_enable_o(id_branch_enable),
         .branch_addr_o(id_branch_addr)
     );
@@ -208,7 +207,7 @@ module mips_top(
         .id_hilo_read_addr(id_hilo_read_addr_id_ex),
         .id_cp0_read_addr(id_cp0_read_addr_id_ex),
         .exception(),
-        .stall(),
+        .stall(exe_stall_request),
         .clk(clk),
         .rst(rst),
         
@@ -316,7 +315,7 @@ module mips_top(
         .exe_cp0_write_data(ex_cp0_write_data_ex_mem),
         .exe_mem_to_reg(ex_mem_to_reg_ex_mem),
         .exception(),
-        .stall(),
+        .stall(exe_stall_request),
         .rst(rst),
         .clk(clk),
         
