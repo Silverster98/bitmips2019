@@ -14,9 +14,10 @@ module mem_wb(
     input wire mem_cp0_write_enable,
     input wire[`CP0_ADDR_BUS] mem_cp0_write_addr,
     input wire[`GPR_BUS] mem_cp0_write_data,
-    input wire mem_mem_to_reg,
-    input wire[`GPR_BUS] mem_alu_data,
-    input wire[`GPR_BUS] mem_ram_data,
+//    input wire mem_mem_to_reg,
+//    input wire[`GPR_BUS] mem_alu_data,
+//    input wire[`GPR_BUS] mem_ram_data,
+    input wire[`GPR_BUS] mem_regfile_write_data,
     
     output reg wb_regfile_write_enable,
     output reg[`GPR_ADDR_BUS] wb_regfile_write_addr,
@@ -45,7 +46,7 @@ module mem_wb(
         end else begin
             wb_regfile_write_enable <= mem_regfile_write_enable;
             wb_regfile_write_addr <= mem_regfile_write_addr;
-            wb_regfile_write_data <= (mem_mem_to_reg == 1'b1) ? mem_ram_data : mem_alu_data;
+            wb_regfile_write_data <= mem_regfile_write_data;
             wb_hi_write_enable <= mem_hi_write_enable;
             wb_hi_write_data <= mem_hi_write_data;
             wb_lo_write_enable <= mem_lo_write_enable;

@@ -40,9 +40,10 @@ module mem(
     output reg cp0_write_enable_o,
     output reg[`CP0_ADDR_BUS] cp0_write_addr_o,
     output reg[`CP0_BUS] cp0_write_data_o,
-    output reg mem_to_reg_o,
-    output reg[`GPR_BUS] alu_data_o,
-    output reg[`GPR_BUS] ram_data_o,
+//    output reg mem_to_reg_o,
+//    output reg[`GPR_BUS] alu_data_o,
+//    output reg[`GPR_BUS] ram_data_o,
+    output reg[`GPR_BUS] regfile_write_data_o,
     
     output reg[3:0] ram_write_select_o, // byte select, width = 4bit for 4 byte,bit 1 is write, bit 0 is no write
     output reg ram_write_enable_o,
@@ -52,6 +53,7 @@ module mem(
     );
     
     reg is_read_bad_addr, is_write_bad_addr;
+    reg[`GPR_BUS] ram_data_o;
     
     always @ (*) begin
         if (rst == `RST_ENABLE) begin
@@ -64,8 +66,9 @@ module mem(
             cp0_write_enable_o <= 1'b0;
             cp0_write_addr_o <= `ZEROWORD5;
             cp0_write_data_o <= `ZEROWORD32;
-            mem_to_reg_o <= 1'b0;
-            alu_data_o <= `ZEROWORD32;
+//            mem_to_reg_o <= 1'b0;
+//            alu_data_o <= `ZEROWORD32;
+            regfile_write_data_o <= `ZEROWORD32;
         end else begin
             regfile_write_enable_o <= regfile_write_enable_i;
             regfile_write_addr_o <= regfile_write_addr_i;
@@ -76,8 +79,9 @@ module mem(
             cp0_write_enable_o <= cp0_write_enable_i;
             cp0_write_addr_o <= cp0_write_addr_i;
             cp0_write_data_o <= cp0_write_data_i;
-            mem_to_reg_o <= mem_to_reg_i;
-            alu_data_o <= alu_data_i;
+//            mem_to_reg_o <= mem_to_reg_i;
+//            alu_data_o <= alu_data_i;
+            regfile_write_data_o <= (mem_to_reg_i == 1'b1) ? ram_data_o : alu_data_i;
         end
     end
     
