@@ -33,8 +33,8 @@ module id_ex(
     input wire[`CP0_ADDR_BUS] id_cp0_read_addr,
     
     output reg[`INST_ADDR_BUS] ex_pc,
-    output reg[`GPR_ADDR_BUS] ex_rs_data,
-    output reg[`GPR_ADDR_BUS] ex_rt_data,
+    output reg[`GPR_BUS] ex_rs_data,
+    output reg[`GPR_BUS] ex_rt_data,
     output reg[`INST_BUS] ex_instr,
     output reg[`ALUOP_BUS] ex_aluop,
     output reg[`GPR_ADDR_BUS] ex_regfile_write_addr,

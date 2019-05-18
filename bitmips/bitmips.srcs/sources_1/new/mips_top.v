@@ -184,7 +184,7 @@ module mips_top(
         .pc_return_addr_o(id_pc_return_addr_id_ex),
         .cp0_read_addr_o(id_cp0_read_addr_id_ex),
         .hilo_read_addr_o(id_hilo_read_addr_id_ex),
-        .imm_16_o(id_imm16_id_ex),
+        .imm16_o(id_imm16_id_ex),
         .exception_type_o(id_exception_type_id_ex),
         .branch_enable_o(id_branch_enable),
         .branch_addr_o(id_branch_addr)
@@ -227,7 +227,7 @@ module mips_top(
         .ex_now_in_delayslot(id_ex_now_in_delayslot_ex),
         .ex_exception_type(id_ex_exception_type_ex),
         .ex_regfile_write_enable(id_ex_regfile_write_enable_ex),
-        .ex_ram_write_enbale(id_ex_ram_write_enable_ex),
+        .ex_ram_write_enable(id_ex_ram_write_enable_ex),
         .ex_hi_write_enable(id_ex_hi_write_enable_ex),
         .ex_lo_write_enable(id_ex_lo_write_enable_ex),
         .ex_cp0_write_enable(id_ex_cp0_write_enable_ex),
@@ -237,10 +237,10 @@ module mips_top(
         .ex_pc_return_addr(id_ex_pc_return_addr_ex),
         .ex_sign_extend_imm16(id_ex_sign_extend_imm16_ex),
         .ex_zero_extend_imm16(id_ex_zero_extend_imm16_ex),
-        .ex_load_extend_imm16(id_ex_load_upper_imm16_ex),
+        .ex_load_upper_imm16(id_ex_load_upper_imm16_ex),
         .ex_hilo_read_addr(id_ex_hilo_read_addr_ex),
         .ex_cp0_read_addr(id_ex_cp0_read_addr_ex),
-        .exe_id_now_in_delayslot(exe_id_now_in_delayslot)
+        .ex_id_now_in_delayslot(exe_id_now_in_delayslot)
     );
     
     ex mips_ex(
@@ -327,7 +327,7 @@ module mips_top(
         .clk(clk),
         
         .mem_pc(ex_mem_pc_mem),
-        .exe_aluop(ex_mem_aluop_mem),
+        .mem_aluop(ex_mem_aluop_mem),
         .mem_now_in_delayslot(ex_mem_now_in_delayslot_mem),
         .mem_exception_type(ex_mem_exception_type_mem),
         .mem_regfile_write_enable(ex_mem_regfile_write_enable_mem),
@@ -436,16 +436,16 @@ module mips_top(
     );
     
     regfile mips_regfile(
-        .rs_read_addr_i(if_id_instr_id[25:21]),
-        .rt_read_addr_i(if_id_instr_id[20:16]),
+        .rs_read_addr(if_id_instr_id[25:21]),
+        .rt_read_addr(if_id_instr_id[20:16]),
         .clk(clk),
         .rst(rst),
-        .regfile_write_enable_i(mem_wb_regfile_write_enable),
-        .regfile_write_addr_i(mem_wb_regfile_write_addr),
-        .regfile_write_data_i(mem_wb_regfile_write_data),
+        .regfile_write_enable(mem_wb_regfile_write_enable),
+        .regfile_write_addr(mem_wb_regfile_write_addr),
+        .regfile_write_data(mem_wb_regfile_write_data),
         
-        .rs_read_data(regfile_rs_data_id),
-        .rt_read_data(regfile_rt_data_id)
+        .rs_data_o(regfile_rs_data_id),
+        .rt_data_o(regfile_rt_data_id)
     );
     
     hilo mips_hilo(
@@ -455,25 +455,25 @@ module mips_top(
         .lo_write_enable_i(mem_wb_lo_write_enable),
         .lo_write_data_i(mem_wb_lo_write_data),
         
-        .hilo_read_data(hilo_data_id_ex)
+        .hilo_read_data_o(hilo_data_id_ex)
     );
     
     // ==
-    cp0 mips_cp0(
-        .clk(clk),
-        .rst(rst),
-        .cp0_read_addr_i(id_cp0_read_addr_id_ex),
-        .cp0_write_enable_i(mem_cp0_write_enable),
-        .cp0_write_addr_i(mem_cp0_write_addr),
-        .cp0_write_data_i(mem_cp0_write_data),
-        .exception_type_i(mem_exception_type),
-        .pc_i(mem_store_pc),    
-        .exception_addr_i(mem_access_mem_addr),
-        .int_i(),
-        .now_in_delayslot_i(mem_now_in_delayslot),
-        .cp0_read_data_o(cp0_data_id_ex),
-        .cp0_return_pc_o(cp0_return_pc),    
-        .timer_int_o(),    
-        .flush_o(is_exception)
-    );
+//    cp0 mips_cp0(
+//        .clk(clk),
+//        .rst(rst),
+//        .cp0_read_addr_i(id_cp0_read_addr_id_ex),
+//        .cp0_write_enable_i(mem_cp0_write_enable),
+//        .cp0_write_addr_i(mem_cp0_write_addr),
+//        .cp0_write_data_i(mem_cp0_write_data),
+//        .exception_type_i(mem_exception_type),
+//        .pc_i(mem_store_pc),    
+//        .exception_addr_i(mem_access_mem_addr),
+//        .int_i(),
+//        .now_in_delayslot_i(mem_now_in_delayslot),
+//        .cp0_read_data_o(cp0_data_id_ex),
+//        .cp0_return_pc_o(cp0_return_pc),    
+//        .timer_int_o(),    
+//        .flush_o(is_exception)
+//    );
 endmodule

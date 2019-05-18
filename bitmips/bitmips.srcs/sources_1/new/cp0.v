@@ -183,7 +183,7 @@ begin
         cp0_prid <= `ZEROWORD32;
     end else begin
         if(is_exception_asserted(rubbish))
-            de_assert_exception();      
+            de_asserted_exception(rubbish);      
         update_timer(rubbish);
         handle_exception(exception_type_i);
         //cp0_read_data_o = cp0_read(cp0_read_addr_i);
