@@ -7,6 +7,7 @@ module mips_top(
     
     wire[`INST_ADDR_BUS] if_pc_if_id;
     wire[`EXCEP_TYPE_BUS] if_exception_type_if_id;
+    wire[`INST_BUS] rom_instr_if_id;
     
     wire[`INST_BUS] if_id_instr_id;
     wire[`INST_ADDR_BUS] if_id_pc_id;
@@ -120,7 +121,7 @@ module mips_top(
         .clk(clk),
         .stall(exe_stall_request),
         .exception(is_exception),
-        .exception_pc_i(),
+        .exception_pc_i(cp0_return_pc),
         .branch_enable_i(id_branch_enable),
         .branch_addr_i(id_branch_addr),
         
@@ -129,11 +130,16 @@ module mips_top(
 //        .cs_o()
     );
     
+    rom mips_rom(
+        .a(if_pc_if_id[11:2]),
+        .spo(rom_instr_if_id)
+    );
+    
     if_id mips_if_id(
         .rst(rst),
         .clk(clk),
         .if_pc(if_pc_if_id),
-        .if_instr(),
+        .if_instr(rom_instr_if_id),
         .exception(is_exception),
         .stall(exe_stall_request),
         .if_exception_type(if_exception_type_if_id),
