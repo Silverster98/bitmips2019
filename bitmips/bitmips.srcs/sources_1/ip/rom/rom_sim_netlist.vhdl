@@ -1,10 +1,10 @@
 -- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
--- Tool Version: Vivado v.2018.3 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
--- Date        : Sat May 18 17:43:26 2019
--- Host        : LAPTOP-ILT6KOAH running 64-bit major release  (build 9200)
--- Command     : write_vhdl -force -mode funcsim {F:/vivado
---               files/bitmips/bitmips.srcs/sources_1/ip/rom/rom_sim_netlist.vhdl}
+-- Tool Version: Vivado v.2018.3 (lin64) Build 2405991 Thu Dec  6 23:36:41 MST 2018
+-- Date        : Sat May 18 14:12:59 2019
+-- Host        : ubuntu running 64-bit Ubuntu 16.04.1 LTS
+-- Command     : write_vhdl -force -mode funcsim -rename_top rom -prefix
+--               rom_ rom_sim_netlist.vhdl
 -- Design      : rom
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -19,8 +19,6 @@ entity rom_dist_mem_gen_v8_0_12_rom is
     spo : out STD_LOGIC_VECTOR ( 12 downto 0 );
     a : in STD_LOGIC_VECTOR ( 9 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of rom_dist_mem_gen_v8_0_12_rom : entity is "dist_mem_gen_v8_0_12_rom";
 end rom_dist_mem_gen_v8_0_12_rom;
 
 architecture STRUCTURE of rom_dist_mem_gen_v8_0_12_rom is
@@ -216,8 +214,6 @@ entity rom_dist_mem_gen_v8_0_12_synth is
     spo : out STD_LOGIC_VECTOR ( 12 downto 0 );
     a : in STD_LOGIC_VECTOR ( 9 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of rom_dist_mem_gen_v8_0_12_synth : entity is "dist_mem_gen_v8_0_12_synth";
 end rom_dist_mem_gen_v8_0_12_synth;
 
 architecture STRUCTURE of rom_dist_mem_gen_v8_0_12_synth is
@@ -316,8 +312,6 @@ entity rom_dist_mem_gen_v8_0_12 is
   attribute C_SYNC_ENABLE of rom_dist_mem_gen_v8_0_12 : entity is 1;
   attribute C_WIDTH : integer;
   attribute C_WIDTH of rom_dist_mem_gen_v8_0_12 : entity is 32;
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of rom_dist_mem_gen_v8_0_12 : entity is "dist_mem_gen_v8_0_12";
 end rom_dist_mem_gen_v8_0_12;
 
 architecture STRUCTURE of rom_dist_mem_gen_v8_0_12 is

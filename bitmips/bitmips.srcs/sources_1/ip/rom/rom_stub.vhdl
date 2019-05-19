@@ -1,9 +1,10 @@
 -- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
--- Tool Version: Vivado v.2018.3 (win64) Build 2405991 Thu Dec  6 23:38:27 MST 2018
--- Date        : Sat May 18 17:43:26 2019
--- Host        : LAPTOP-ILT6KOAH running 64-bit major release  (build 9200)
--- Command     : write_vhdl -force -mode synth_stub {F:/vivado files/bitmips/bitmips.srcs/sources_1/ip/rom/rom_stub.vhdl}
+-- Tool Version: Vivado v.2018.3 (lin64) Build 2405991 Thu Dec  6 23:36:41 MST 2018
+-- Date        : Sat May 18 14:12:59 2019
+-- Host        : ubuntu running 64-bit Ubuntu 16.04.1 LTS
+-- Command     : write_vhdl -force -mode synth_stub -rename_top rom -prefix
+--               rom_ rom_stub.vhdl
 -- Design      : rom
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a200tfbg676-2

@@ -70,7 +70,7 @@ module ex(
     wire[`GPR_BUS] alu_output_data;
     wire[`GPR_BUS] hilo_data_forward, cp0_data_forward;
     wire[63:0] mul_data, div_data, hilo_write_data;
-    wire start, stall, div_done, flag_unsigned, div_stall;
+    wire start, div_done, flag_unsigned, div_stall;
     assign start = (aluop_i == `ALUOP_DIV || aluop_i == `ALUOP_DIVU) ? 1 : 0;
     assign flag_unsigned = (aluop_i == `ALUOP_DIVU) ? 1 : 0;
     assign div_stall = (aluop_i == `ALUOP_DIV || aluop_i == `ALUOP_DIVU) ? !div_done : 0;

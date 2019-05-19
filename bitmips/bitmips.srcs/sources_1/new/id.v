@@ -118,13 +118,13 @@ begin
 		instr_o <= `ZEROWORD32;
         aluop_o <= 8'h0;   
         regfile_write_addr_o <= 5'h0;
-        regfile_write_enable_o <= 1'b0;
+//        regfile_write_enable_o <= 1'b0; 
         now_in_delayslot_o <= 1'b0;
 		next_in_delayslot_o <= 1'b0;
 		branch_enable_o <= 1'b0;
         branch_addr_o <= `ZEROWORD32;
 		pc_return_addr_o <= `ZEROWORD32;
-		regfile_write_enable_o <= 1'b0;
+		regfile_write_enable_o <= 1'b0; // 121 repeated
 		ram_write_enable_o <= 1'b0;
 		hi_write_enable_o <= 1'b0;
 		lo_write_enable_o <= 1'b0;
