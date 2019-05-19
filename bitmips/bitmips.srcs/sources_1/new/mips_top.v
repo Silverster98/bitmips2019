@@ -412,9 +412,9 @@ module mips_top(
         .mem_lo_write_enable(mem_lo_write_enable_mem_wb),
         .mem_hi_write_data(mem_hi_write_data_mem_wb),
         .mem_lo_write_data(mem_lo_write_data_mem_wb),
-//        .mem_cp0_write_enable(mem_cp0_write_enable),
-//        .mem_cp0_write_addr(mem_cp0_write_addr),
-//        .mem_cp0_write_data(mem_cp0_write_data),
+        .mem_cp0_write_enable(mem_cp0_write_enable),
+        .mem_cp0_write_addr(mem_cp0_write_addr),
+        .mem_cp0_write_data(mem_cp0_write_data),
 //        .mem_mem_to_reg(mem_mem_to_reg_mem_wb),
 //        .mem_alu_data(mem_alu_data_mem_wb),
 //        .mem_ram_data(mem_ram_data_mem_wb),
@@ -449,6 +449,8 @@ module mips_top(
     );
     
     hilo mips_hilo(
+        .clk(clk),
+        .rst(rst),
         .hilo_read_addr_i(id_hilo_read_addr_id_ex),
         .hi_write_enable_i(mem_wb_hi_write_enable),
         .hi_write_data_i(mem_wb_hi_write_data),
@@ -458,22 +460,22 @@ module mips_top(
         .hilo_read_data_o(hilo_data_id_ex)
     );
     
-    // ==
-//    cp0 mips_cp0(
-//        .clk(clk),
-//        .rst(rst),
-//        .cp0_read_addr_i(id_cp0_read_addr_id_ex),
-//        .cp0_write_enable_i(mem_cp0_write_enable),
-//        .cp0_write_addr_i(mem_cp0_write_addr),
-//        .cp0_write_data_i(mem_cp0_write_data),
-//        .exception_type_i(mem_exception_type),
-//        .pc_i(mem_store_pc),    
-//        .exception_addr_i(mem_access_mem_addr),
-//        .int_i(),
-//        .now_in_delayslot_i(mem_now_in_delayslot),
-//        .cp0_read_data_o(cp0_data_id_ex),
-//        .cp0_return_pc_o(cp0_return_pc),    
-//        .timer_int_o(),    
-//        .flush_o(is_exception)
-//    );
+     //==
+    cp0 mips_cp0(
+        .clk(clk),
+        .rst(rst),
+        .cp0_read_addr_i(id_cp0_read_addr_id_ex),   //maybe problems
+        .cp0_write_enable_i(mem_cp0_write_enable),
+        .cp0_write_addr_i(mem_cp0_write_addr),
+        .cp0_write_data_i(mem_cp0_write_data),
+        .exception_type_i(mem_exception_type),
+        .pc_i(mem_store_pc),    
+        .exception_addr_i(mem_access_mem_addr),
+        .int_i(),
+        .now_in_delayslot_i(mem_now_in_delayslot),
+        .cp0_read_data_o(cp0_data_id_ex),
+        .cp0_return_pc_o(cp0_return_pc),    
+        .timer_int_o(),    
+        .flush_o(is_exception)
+    );
 endmodule

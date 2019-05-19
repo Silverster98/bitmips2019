@@ -32,26 +32,27 @@ reg timer_int;
 reg rubbish;
 reg flush;
 reg [`CP0_BUS] cp0_return_pc;
+reg exception_flag;
 
-function is_exception_asserted(input rubbish);
+task is_exception_asserted(output is_exception_asserted);
 begin
     is_exception_asserted = (flush == 1'b1) ? 1 : 0;
 end
-endfunction
+endtask
 
-function de_asserted_exception(input rubbish);
+task de_asserted_exception;
 begin
     flush = 0;
 end
-endfunction
+endtask
 
-function update_timer(input rubbish);
+task update_timer(input rubbish);
 begin
     cp0_count = cp0_count + 1;
     if(cp0_compare != `ZEROWORD32 && cp0_compare == cp0_count)
         timer_int = 1;
 end
-endfunction
+endtask
 
 
 function [31:0] cp0_read(input [`CP0_ADDR_BUS] read_addr);
@@ -79,7 +80,7 @@ begin
 end
 endfunction
 
-function cp0_write(input [`CP0_ADDR_BUS] write_addr, input [`CP0_BUS]  write_data);
+task cp0_write(input [`CP0_ADDR_BUS] write_addr, input [`CP0_BUS]  write_data);
 begin
     case(write_addr)
         5'd9: //count
@@ -97,9 +98,9 @@ begin
             cp0_epc = write_data;
     endcase
 end
-endfunction
+endtask
 
-function assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] int_offset);
+task assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] int_offset);
 begin
     if(cp0_cause[`EXL] ==0) begin
         if(now_in_delayslot_i == 1'b1) begin
@@ -114,31 +115,31 @@ begin
     cp0_return_pc = int_offset + 32'hbfc00000;
     cp0_cause[6:2] = exception_code;
 end
-endfunction
+endtask
 
 
-function assert_general_exception(input [`EXCEP_CODE_BUS] exception_code);
+task assert_general_exception(input [`EXCEP_CODE_BUS] exception_code);
 begin
     assert_exception(exception_code,32'h0000_0380);
 end
-endfunction
+endtask
 
-function assert_general_memory_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] exception_addr);
+task assert_general_memory_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] exception_addr);
 begin
     assert_exception(exception_code,32'h0000_0380);
     cp0_badvaddr = exception_addr_i;
 end
-endfunction
+endtask
 
-function assert_exception_return(input [`EXCEP_CODE_BUS] exception_code);
+task assert_exception_return(input [`EXCEP_CODE_BUS] exception_code);
 begin
     cp0_status[`EXL] = 0;
     cp0_return_pc = cp0_epc;
 end
-endfunction
+endtask
 
 
-function handle_exception(input [`EXCEP_TYPE_BUS] exception_type);
+task handle_exception(input [`EXCEP_TYPE_BUS] exception_type);
 begin
     if(exception_type[31] == 1'b1) begin  
         assert_general_memory_exception(`EXCEP_CODE_ADEL,exception_addr_i);
@@ -158,7 +159,7 @@ begin
         assert_exception_return(`EXCEP_CODE_ERET);
     end
 end
-endfunction
+endtask
 
 always @(*)
 begin
@@ -182,8 +183,9 @@ begin
         // cp0_prid seems not important
         cp0_prid <= `ZEROWORD32;
     end else begin
-        if(is_exception_asserted(rubbish))
-            de_asserted_exception(rubbish);      
+        is_exception_asserted(exception_flag);
+        if(exception_flag)
+            de_asserted_exception();      
         update_timer(rubbish);
         handle_exception(exception_type_i);
         //cp0_read_data_o = cp0_read(cp0_read_addr_i);

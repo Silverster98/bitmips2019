@@ -46,15 +46,14 @@ reg rs_read_enable;
 reg rt_read_enable;
 reg rs_stall_request;
 reg rt_stall_request;
-reg [31:0] imm;
 
-wire op = instr_i[31:26];
-wire rs = instr_i[25:21];
-wire rt = instr_i[20:16];
-wire rd = instr_i[15:11];
-wire shamt = instr_i[10:6];
-wire funct = instr_i[5:0];
-wire offset = instr_i[15:0];
+wire [5:0]op = instr_i[31:26];
+wire [4:0]rs = instr_i[25:21];
+wire [4:0]rt = instr_i[20:16];
+wire [4:0]rd = instr_i[15:11];
+wire [4:0]shamt = instr_i[10:6];
+wire [5:0]funct = instr_i[5:0];
+wire [15:0]offset = instr_i[15:0];
 
 
 wire [31:0] pc_add4;
@@ -67,7 +66,7 @@ assign pc_add8 = pc_i + 32'h8;
 assign imm16_o = instr_i[15:0];
 
 assign id_stall_request_o = rs_stall_request | rt_stall_request;
-assign exception_type_o = instr_valid ? {exception_type_i[31],1'b0,exception_type_i[29:0]} :
+assign exception_type_o = (instr_valid == 1) ? {exception_type_i[31],1'b0,exception_type_i[29:0]} :
                  {exception_type_i[31],1'b1,exception_type_i[29:0]};
 // load relevant
 always @ (*)
@@ -94,8 +93,6 @@ begin
 		rs_data_o <= bypass_mem_regfile_write_data_i;
 	else if(rs_read_enable == 1'b1)
 		rs_data_o <= rs_data_i;
-	else 
-		rs_data_o <= imm;
 end
 
 always @ (*)
@@ -109,8 +106,6 @@ begin
 		rt_data_o <= bypass_mem_regfile_write_data_i;
 	else if(rt_read_enable == 1'b1)
 		rt_data_o <= rt_data_i;
-	else 
-		rt_data_o <= imm;
 end
 
 always @ (*)
@@ -118,8 +113,8 @@ begin
     if(rst == 1'b1)
     begin
         pc_o <= `ZEROWORD32;
-        rs_data_o <= `ZEROWORD32;
-        rt_data_o <= `ZEROWORD32;
+        //rs_data_o <= `ZEROWORD32;
+        //rt_data_o <= `ZEROWORD32;
 		instr_o <= `ZEROWORD32;
         aluop_o <= 8'h0;   
         regfile_write_addr_o <= 5'h0;
@@ -155,6 +150,12 @@ begin
         rt_read_enable <= 1'b0; 
 		instr_valid <= 1'b0;
 		case(op)
+		`ID_ADDI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_ADDI;
+            rs_read_enable <= 1'b1;
+            instr_valid <= 1'b1;
+        end
 		6'b000000: begin
 			if(shamt == 5'b00000) begin   
 				case(funct)
@@ -169,7 +170,6 @@ begin
 					aluop_o <= `ALUOP_ANDI;
 					rs_read_enable <= 1'b1;
 					regfile_write_addr_o <= rt;
-					imm <= {16'h0,instr_i[15:0]};
 					instr_valid <= 1'b1;
 				end
 				`ID_LUI: begin
@@ -177,7 +177,6 @@ begin
 					aluop_o <= `ALUOP_AND;
 					rs_read_enable <= 1'b1;
 					regfile_write_addr_o <= rt;
-					imm <= {instr_i[15:0],16'h0};
 					instr_valid <= 1'b1;
 				end
 				`ID_OR: begin
@@ -191,7 +190,6 @@ begin
 					aluop_o <= `ALUOP_ORI;
 					rs_read_enable <= 1'b1;
 					regfile_write_addr_o <= rt;
-					imm <= {16'h0,instr_i[15:0]};
 					instr_valid <= 1'b1;
 				end
 				`ID_XOR: begin
@@ -205,7 +203,6 @@ begin
 					aluop_o <= `ALUOP_XORI;
 					rs_read_enable <= 1'b1;
 					regfile_write_addr_o <= rt;
-					imm <= {16'h0,instr_i[15:0]};
 					instr_valid <= 1'b1;
 				end
 				`ID_NOR: begin
@@ -220,26 +217,10 @@ begin
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
-				`ID_ADDI: begin
-				    regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_ADDI;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
-					imm <= signed_extend;
-					instr_valid <= 1'b1;
-				end
 				`ID_ADDU: begin
 					regfile_write_enable_o <= 1'b1;
 					aluop_o <= `ALUOP_ADDU;
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-					instr_valid <= 1'b1;
-				end
-				`ID_ADDIU: begin
-					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_ADDIU;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
-					imm <= signed_extend;
 					instr_valid <= 1'b1;
 				end
 				`ID_SUB:begin
@@ -265,7 +246,6 @@ begin
 					aluop_o <= `ALUOP_SLTI;
 					rs_read_enable <= 1'b1;
 					regfile_write_addr_o <= rt;
-					imm <= signed_extend;
 					instr_valid <= 1'b1;
 				end
 				`ID_SLTU: begin
@@ -306,7 +286,6 @@ begin
 						instr_valid <= 1'b1;
 						aluop_o <= `ALUOP_MFLO;
 						regfile_write_enable_o <= 1'b1;
-						hilo_read_addr_o <= 1'b0;  // low
 						instr_valid <= 1'b1;
 					end
 				end
@@ -409,6 +388,13 @@ begin
 			default:;
 			endcase
 		end
+        `ID_ADDIU: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_ADDIU;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
 		`ID_J: begin
 			branch_addr_o <= {pc_add4[31:28],instr_i[25:0],2'b00};
 			branch_enable_o <= 1'b1;
