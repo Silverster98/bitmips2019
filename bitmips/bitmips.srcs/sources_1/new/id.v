@@ -566,19 +566,6 @@ begin
 			instr_valid <= 1'b1;
 			ram_write_enable_o <= 1'b1;
 		end
-//		`ID_ADDI: begin
-//			aluop_o <= `ALUOP_ADDI;
-//			instr_valid <= 1'b1;
-//			regfile_write_addr_o <= rt;
-//			regfile_write_enable_o <= 1'b1;
-//			rs_read_enable <= 1'b1;
-//		end
-//		`ID_SLT:begin
-//			aluop_o <= `ALUOP_SLT;
-//			instr_valid <= 1'b1;
-//			regfile_write_enable_o <= 1'b1;
-//			rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-//		end
 		endcase
 		if(instr_i[31:21] == 11'b00000000000) begin
 			if(funct == `ID_SLL) begin

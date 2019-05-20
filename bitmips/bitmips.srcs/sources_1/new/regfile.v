@@ -19,7 +19,7 @@ always @ (posedge clk) begin
             regfile[regfile_write_addr] = regfile_write_data;
 end
     
-always @ (posedge clk) begin
+always @ (*) begin
     if(rst == `RST_ENABLE)
         rs_data_o <= 32'h0;
     else if(rs_read_addr == 5'h0)
@@ -29,7 +29,7 @@ always @ (posedge clk) begin
     else
         rs_data_o <= regfile[rs_read_addr];
 end 
-always @ (posedge clk) begin
+always @ (*) begin
     if(rst == `RST_ENABLE)
         rt_data_o <= 32'h0;
     else if(rt_read_addr == 5'h0)
