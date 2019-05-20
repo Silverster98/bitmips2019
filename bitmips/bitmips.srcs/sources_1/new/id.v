@@ -118,13 +118,13 @@ begin
 		instr_o <= `ZEROWORD32;
         aluop_o <= 8'h0;   
         regfile_write_addr_o <= 5'h0;
-//        regfile_write_enable_o <= 1'b0; 
+        regfile_write_enable_o <= 1'b0;
         now_in_delayslot_o <= 1'b0;
 		next_in_delayslot_o <= 1'b0;
 		branch_enable_o <= 1'b0;
         branch_addr_o <= `ZEROWORD32;
 		pc_return_addr_o <= `ZEROWORD32;
-		regfile_write_enable_o <= 1'b0; // 121 repeated
+		regfile_write_enable_o <= 1'b0;
 		ram_write_enable_o <= 1'b0;
 		hi_write_enable_o <= 1'b0;
 		lo_write_enable_o <= 1'b0;
@@ -138,6 +138,7 @@ begin
         regfile_write_addr_o <= rd;
 		regfile_write_enable_o <= 1'b0; 
 		now_in_delayslot_o <= now_in_delayslot_i;
+		next_in_delayslot_o <= 1'b0;
         branch_enable_o <= 1'h0;
         branch_addr_o <= `ZEROWORD32;
 		pc_return_addr_o <= 1'b0;
@@ -149,34 +150,15 @@ begin
         rs_read_enable <= 1'b0;          
         rt_read_enable <= 1'b0; 
 		instr_valid <= 1'b0;
+		cp0_read_addr_o <= rd;
 		case(op)
-		`ID_ADDI: begin
-            regfile_write_enable_o <= 1'b1;
-            aluop_o <= `ALUOP_ADDI;
-            rs_read_enable <= 1'b1;
-            instr_valid <= 1'b1;
-        end
 		6'b000000: begin
-			if(shamt == 5'b00000) begin   
+			//if(shamt == 5'b00000) begin   
 				case(funct)
 				`ID_AND: begin
 					regfile_write_enable_o <= 1'b1;
 					aluop_o <= `ALUOP_AND;
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-					instr_valid <= 1'b1;
-				end
-				`ID_ANDI: begin
-					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_ANDI;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
-					instr_valid <= 1'b1;
-				end
-				`ID_LUI: begin
-					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_AND;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
 					instr_valid <= 1'b1;
 				end
 				`ID_OR: begin
@@ -185,24 +167,10 @@ begin
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
-				`ID_ORI: begin
-					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_ORI;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
-					instr_valid <= 1'b1;
-				end
 				`ID_XOR: begin
 					regfile_write_enable_o <= 1'b1;
 					aluop_o <= `ALUOP_XOR;
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-					instr_valid <= 1'b1;
-				end
-				`ID_XORI: begin
-					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_XORI;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
 					instr_valid <= 1'b1;
 				end
 				`ID_NOR: begin
@@ -241,19 +209,36 @@ begin
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
-				`ID_SLTI: begin
-					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_SLTI;
-					rs_read_enable <= 1'b1;
-					regfile_write_addr_o <= rt;
-					instr_valid <= 1'b1;
-				end
 				`ID_SLTU: begin
 					regfile_write_enable_o <= 1'b1;
 					aluop_o <= `ALUOP_SLTU;
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
+				`ID_MULT: begin    
+                    aluop_o <= `ALUOP_MULT;
+                    instr_valid <= 1'b1;
+                    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+                    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+                 end
+                `ID_MULTU: begin    
+                    aluop_o <= `ALUOP_MULTU;
+                    instr_valid <= 1'b1;
+                    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+                    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+                 end
+                `ID_DIV: begin    
+                    aluop_o <= `ALUOP_DIV;
+                    instr_valid <= 1'b1;
+                    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+                    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+                 end
+                `ID_DIVU: begin    
+                    aluop_o <= `ALUOP_DIVU;
+                    instr_valid <= 1'b1;
+                    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
+                    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
+                 end
 				`ID_SLLV: begin
 					regfile_write_enable_o <= 1'b1;
 					aluop_o <= `ALUOP_SLLV;
@@ -272,6 +257,30 @@ begin
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
+				`ID_SLL: begin
+				    if(rs == 5'b0) begin
+                        aluop_o <= `ALUOP_SLL;
+                        regfile_write_enable_o <= 1'b1;
+                        rt_read_enable <= 1'b1;
+                        instr_valid <= 1'b1;
+                    end
+                end
+                 `ID_SRA: begin
+                    if(rs == 5'b0) begin
+                        aluop_o <= `ALUOP_SRA;
+                        regfile_write_enable_o <= 1'b1;
+                        rt_read_enable <= 1'b1;
+                        instr_valid <= 1'b1;
+                    end
+                end
+                `ID_SRL: begin
+                    if(rs == 5'b0) begin
+                        aluop_o <= `ALUOP_SRL;
+                        regfile_write_enable_o <= 1'b1;
+                        rt_read_enable <= 1'b1;
+                        instr_valid <= 1'b1;
+                    end
+                end
 				`ID_MFHI: begin
 					if(rs == 5'h0 && rt == 5'h0) begin
 						instr_valid <= 1'b1;
@@ -329,7 +338,7 @@ begin
 				end
 				default:;
 				endcase 
-			end
+			//end
 			if(funct == `ID_SYSCALL) begin
 				aluop_o <= `ALUOP_SYSCALL;
 				instr_valid <= 1'b1;
@@ -388,9 +397,57 @@ begin
 			default:;
 			endcase
 		end
+        `ID_ANDI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_ANDI;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
+        `ID_LUI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_AND;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
+        `ID_ORI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_ORI;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
+        `ID_XORI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_XORI;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
+        `ID_ADDI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_ADDI;
+            rs_read_enable <= 1'b1;
+            instr_valid <= 1'b1;
+        end
         `ID_ADDIU: begin
             regfile_write_enable_o <= 1'b1;
             aluop_o <= `ALUOP_ADDIU;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
+        `ID_SLTI: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_SLTI;
+            rs_read_enable <= 1'b1;
+            regfile_write_addr_o <= rt;
+            instr_valid <= 1'b1;
+        end
+        `ID_SLTIU: begin
+            regfile_write_enable_o <= 1'b1;
+            aluop_o <= `ALUOP_SLTI;
             rs_read_enable <= 1'b1;
             regfile_write_addr_o <= rt;
             instr_valid <= 1'b1;
@@ -521,30 +578,6 @@ begin
 			regfile_write_enable_o <= 1'b1;
 			rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 		end
-		`ID_MULT: begin    
-		    aluop_o <= `ALUOP_MULT;
-		    instr_valid <= 1'b1;
-		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
-		 end
-        `ID_MULTU: begin    
-		    aluop_o <= `ALUOP_MULTU;
-		    instr_valid <= 1'b1;
-		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
-		 end
-        `ID_DIV: begin    
-		    aluop_o <= `ALUOP_DIV;
-		    instr_valid <= 1'b1;
-		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
-		 end
-        `ID_DIVU: begin    
-		    aluop_o <= `ALUOP_DIVU;
-		    instr_valid <= 1'b1;
-		    rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
-		    hi_write_enable_o <= 1'b1; lo_write_enable_o <= 1'b1;
-		 end
 		endcase
 		if(instr_i[31:21] == 11'b00000000000) begin
 			if(funct == `ID_SLL) begin
@@ -573,7 +606,7 @@ begin
 			aluop_o <= `ALUOP_MFC0;		
 			instr_valid <= 1'b1;
 			regfile_write_enable_o <= 1'b1;
-			cp0_read_addr_o <= rd;
+			//cp0_read_addr_o <= rd;
         end else if(instr_i[31:21] == 11'b01000000100 && instr_i[10:3] == 8'b00000000) begin
             aluop_o <= `ALUOP_MTC0;
             instr_valid <= 1'b1;	

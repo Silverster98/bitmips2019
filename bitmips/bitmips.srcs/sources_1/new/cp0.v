@@ -113,6 +113,7 @@ begin
     end
     cp0_status[`EXL] = 1;
     cp0_return_pc = int_offset + 32'hbfc00000;
+    flush = 1'b1;
     cp0_cause[6:2] = exception_code;
 end
 endtask
