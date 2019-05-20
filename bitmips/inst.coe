@@ -1,13 +1,25 @@
 ; Generated automatically by bin2coe.py
-;DEPTH = 16;
+;DEPTH = 28;
 ;WIDTH = 32;
 memory_initialization_radix=16;
 memory_initialization_vector=
-240A000D,
-240B000E,
-014B5820,
-08000003,
-00000C00,
+24080006,
+24090001,
+240A0001,
+08000007,
+00000000,
+240C000F,
+240D000F,
+012A5820,
+35490000,
+356A0000,
+2508FFFF,
+1D00FFFB,
+00000000,
+240C000F,
+1D80FFFF,
+00000000,
+00003F00,
 00000000,
 00000000,
 00000000,
@@ -19,4 +31,3 @@ memory_initialization_vector=
 00000000,
 00000000,
 00000000;
-
