@@ -151,6 +151,7 @@ begin
         rt_read_enable <= 1'b0; 
 		instr_valid <= 1'b0;
 		cp0_read_addr_o <= rd;
+		hilo_read_addr_o <= 1'b0;
 		case(op)
 		6'b000000: begin
 			//if(shamt == 5'b00000) begin   
@@ -363,7 +364,7 @@ begin
 			`ID_BLTZ: begin
 				rs_read_enable <= 1'b1;
 				instr_valid <= 1'b1;
-				aluop_o <= `ALUOP_BGTZ;
+				aluop_o <= `ALUOP_BLTZ;
 				if(rs_data_o[31] == 1'b1) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
@@ -406,7 +407,7 @@ begin
         end
         `ID_LUI: begin
             regfile_write_enable_o <= 1'b1;
-            aluop_o <= `ALUOP_AND;
+            aluop_o <= `ALUOP_LUI;
             rs_read_enable <= 1'b1;
             regfile_write_addr_o <= rt;
             instr_valid <= 1'b1;
@@ -448,7 +449,7 @@ begin
         end
         `ID_SLTIU: begin
             regfile_write_enable_o <= 1'b1;
-            aluop_o <= `ALUOP_SLTI;
+            aluop_o <= `ALUOP_SLTIU;
             rs_read_enable <= 1'b1;
             regfile_write_addr_o <= rt;
             instr_valid <= 1'b1;
@@ -456,7 +457,7 @@ begin
 		`ID_J: begin
 			branch_addr_o <= {pc_add4[31:28],instr_i[25:0],2'b00};
 			branch_enable_o <= 1'b1;
-			aluop_o <= `ALUOP_AND;
+			aluop_o <= `ALUOP_J;
 			instr_valid <= 1'b1;
 			next_in_delayslot_o <= 1'b1;
 		end

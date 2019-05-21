@@ -162,11 +162,11 @@ endfunction
     end
     
     assign alu_output_data = get_alu_data(aluop_i, instr_i, rs_data_i, rt_data_i, sign_extend_imm16_i, zero_extend_imm16_i,
-                                       load_upper_imm16_i, pc_return_addr_i);
+                                       load_upper_imm16_i, pc_return_addr_i, hilo_data_forward, cp0_data_forward);
 
 function [31:0] get_alu_data(input [7:0] aluop, input [31:0] instr, input [31:0] rs_value, input [31:0] rt_value,
                              input [31:0] sign_extend_imm16, input [31:0] zero_extend_imm16, input [31:0] load_upper_imm16,
-                             input [31:0] pc_return_addr);
+                             input [31:0] pc_return_addr, input [31:0] hilo_data_forward, input [31:0] cp0_data_forward);
     case (aluop)
         `ALUOP_ADD : begin
             get_alu_data = rs_value + rt_value;

@@ -166,5 +166,6 @@
 `define ALUOP_ERET    8'b00110101
 `define ALUOP_MFC0    8'b00110110
 `define ALUOP_MTC0    8'b00110111
+`define ALUOP_BLTZ    8'b00111000
 
 

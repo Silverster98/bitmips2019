@@ -20,9 +20,11 @@ always @ (posedge clk) begin
     if(rst == `RST_ENABLE) begin
         hi <= `ZEROWORD32;
         lo <= `ZEROWORD32;
-    end else if(hi_write_enable_i == 1'b1)
-        hi <= hi_write_data_i;
-    else if(lo_write_enable_i == 1'b1)
-        lo <= lo_write_data_i;
+    end else begin
+        if(hi_write_enable_i == 1'b1)
+            hi <= hi_write_data_i;
+        if(lo_write_enable_i == 1'b1)
+            lo <= lo_write_data_i;
+    end
 end
 endmodule
