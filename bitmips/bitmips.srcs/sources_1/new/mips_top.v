@@ -2,7 +2,10 @@
 
 module mips_top(
     input wire clk,
-    input wire rst
+    input wire rst,
+    
+    input wire[5:0] interrupt,
+    output wire time_int_out
     );
     
     wire[`INST_ADDR_BUS] if_pc_if_id;
@@ -456,11 +459,11 @@ module mips_top(
         .exception_type_i(mem_exception_type),
         .pc_i(mem_store_pc),    
         .exception_addr_i(mem_access_mem_addr),
-        .int_i(),
+        .int_i(interrupt),
         .now_in_delayslot_i(mem_now_in_delayslot),
         .cp0_read_data_o(cp0_data_id_ex),
         .cp0_return_pc_o(cp0_return_pc),    
-        .timer_int_o(),    
+        .timer_int_o(time_int_out),    
         .flush_o(is_exception)
     );
 endmodule
