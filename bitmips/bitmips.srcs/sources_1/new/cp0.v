@@ -19,14 +19,14 @@ output reg                   timer_int_o,
 output reg                   flush_o
 );
 
+reg [`CP0_BUS] cp0_badvaddr;
 reg [`CP0_BUS] cp0_count;
 reg [`CP0_BUS] cp0_compare;
 reg [`CP0_BUS] cp0_status;
 reg [`CP0_BUS] cp0_cause;
 reg [`CP0_BUS] cp0_epc;
-reg [`CP0_BUS] cp0_config;
-reg [`CP0_BUS] cp0_prid;
-reg [`CP0_BUS] cp0_badvaddr;
+//reg [`CP0_BUS] cp0_prid;
+//reg [`CP0_BUS] cp0_config;
 
 reg timer_int;
 reg rubbish;
@@ -59,6 +59,9 @@ function [31:0] cp0_read(input [`CP0_ADDR_BUS] read_addr);
 begin
     if(cp0_write_enable_i && read_addr == cp0_write_addr_i)
         cp0_read = cp0_write_data_i;
+        /****************************************
+         * some reg is readonly at some bit,so don't give all bit to cp0_read
+         ****************************************/
     else begin
     case(read_addr)
         5'd9: //count:
@@ -71,10 +74,10 @@ begin
             cp0_read = cp0_cause;
         5'd14: //epc:
             cp0_read = cp0_epc;
-        5'd15:
-            cp0_read = cp0_prid;
-        5'd16:
-            cp0_read = cp0_config;
+//        5'd15:
+//            cp0_read = cp0_prid;
+//        5'd16:
+//            cp0_read = cp0_config;
     endcase
     end
 end
@@ -171,6 +174,7 @@ end
 always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
+        cp0_badvaddr <= `ZEROWORD32;
         cp0_count <= `ZEROWORD32;
         cp0_compare <= `ZEROWORD32;
         // [31:  28]
@@ -180,9 +184,9 @@ begin
         cp0_cause <= `ZEROWORD32;
         cp0_epc <= `ZEROWORD32;
         // littel endian
-        cp0_config <= `ZEROWORD32;
+//        cp0_config <= `ZEROWORD32;
         // cp0_prid seems not important
-        cp0_prid <= `ZEROWORD32;
+//        cp0_prid <= `ZEROWORD32;
     end else begin
         is_exception_asserted(exception_flag);
         if(exception_flag)
