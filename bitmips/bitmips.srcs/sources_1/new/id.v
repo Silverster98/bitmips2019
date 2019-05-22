@@ -255,30 +255,6 @@ begin
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
-//				`ID_SLL: begin
-//				    if(rs == 5'b0) begin
-//                        aluop_o <= `ALUOP_SLL;
-//                        regfile_write_enable_o <= 1'b1;
-//                        rt_read_enable <= 1'b1;
-//                        instr_valid <= 1'b1;
-//                    end
-//                end
-//                 `ID_SRA: begin
-//                    if(rs == 5'b0) begin
-//                        aluop_o <= `ALUOP_SRA;
-//                        regfile_write_enable_o <= 1'b1;
-//                        rt_read_enable <= 1'b1;
-//                        instr_valid <= 1'b1;
-//                    end
-//                end
-//                `ID_SRL: begin
-//                    if(rs == 5'b0) begin
-//                        aluop_o <= `ALUOP_SRL;
-//                        regfile_write_enable_o <= 1'b1;
-//                        rt_read_enable <= 1'b1;
-//                        instr_valid <= 1'b1;
-//                    end
-//                end
 				`ID_MFHI: begin
 					if(rs == 5'h0 && rt == 5'h0) begin
 						instr_valid <= 1'b1;
