@@ -94,9 +94,6 @@ module mips_top(
     wire mem_cp0_write_enable;
     wire[`CP0_ADDR_BUS] mem_cp0_write_addr;
     wire[`GPR_BUS] mem_cp0_write_data;
-//    wire mem_mem_to_reg_mem_wb;
-//    wire[`GPR_BUS] mem_alu_data_mem_wb;
-//    wire[`GPR_BUS] mem_ram_data_mem_wb;
     wire[`GPR_BUS] mem_regfile_write_data_mem_wb;
     wire[3:0] mem_ram_write_select;
     wire mem_ram_write_enable;
@@ -275,9 +272,6 @@ module mips_top(
         .bypass_wb_hi_write_data_i(mem_wb_hi_write_data),
         .bypass_wb_lo_write_enable_i(mem_wb_lo_write_enable),
         .bypass_wb_lo_write_data_i(mem_wb_lo_write_data),
-//        .bypass_wb_cp0_write_enable_i(),
-//        .bypass_wb_cp0_write_addr_i(),
-//        .bypass_wb_cp0_write_data_i(),
         .hilo_read_addr_i(id_ex_hilo_read_addr_ex),
         .cp0_read_addr_i(id_ex_cp0_read_addr_ex),
         .clk(clk),
@@ -383,9 +377,6 @@ module mips_top(
         .cp0_write_enable_o(mem_cp0_write_enable),
         .cp0_write_addr_o(mem_cp0_write_addr),
         .cp0_write_data_o(mem_cp0_write_data),
-//        .mem_to_reg_o(mem_mem_to_reg_mem_wb),
-//        .alu_data_o(mem_alu_data_mem_wb),
-//        .ram_data_o(mem_ram_data_mem_wb),
         .regfile_write_data_o(mem_regfile_write_data_mem_wb),
         
         .ram_write_select_o(mem_ram_write_select),
@@ -415,9 +406,6 @@ module mips_top(
         .mem_cp0_write_enable(mem_cp0_write_enable),
         .mem_cp0_write_addr(mem_cp0_write_addr),
         .mem_cp0_write_data(mem_cp0_write_data),
-//        .mem_mem_to_reg(mem_mem_to_reg_mem_wb),
-//        .mem_alu_data(mem_alu_data_mem_wb),
-//        .mem_ram_data(mem_ram_data_mem_wb),
         .mem_regfile_write_data(mem_regfile_write_data_mem_wb),
         .exception(is_exception),
         .rst(rst),
@@ -430,9 +418,6 @@ module mips_top(
         .wb_lo_write_enable(mem_wb_lo_write_enable),
         .wb_hi_write_data(mem_wb_hi_write_data),
         .wb_lo_write_data(mem_wb_lo_write_data)
-//        .wb_cp0_write_enable(),
-//        .wb_cp0_write_addr(),
-//        .wb_cp0_write_data()
     );
     
     regfile mips_regfile(
