@@ -112,7 +112,8 @@ begin
         end
     end
     cp0_status[`EXL] = 1;
-    cp0_return_pc = int_offset + 32'hbfc00000;
+    //cp0_return_pc = int_offset + 32'hbfc0000;
+    cp0_return_pc = int_offset;
     flush = 1'b1;
     cp0_cause[6:2] = exception_code;
 end
@@ -121,13 +122,13 @@ endtask
 
 task assert_general_exception(input [`EXCEP_CODE_BUS] exception_code);
 begin
-    assert_exception(exception_code,32'h0000_0380);
+    assert_exception(exception_code,32'h0000_0020);
 end
 endtask
 
 task assert_general_memory_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] exception_addr);
 begin
-    assert_exception(exception_code,32'h0000_0380);
+    assert_exception(exception_code,32'h0000_0020);
     cp0_badvaddr = exception_addr_i;
 end
 endtask
