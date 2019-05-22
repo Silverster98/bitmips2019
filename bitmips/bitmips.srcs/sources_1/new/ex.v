@@ -90,7 +90,7 @@ function [31:0] get_hilo_data_forward(input [31:0] hilo_data, input hilo_read_ad
     begin
         get_hilo_data_forward = hilo_data;
         
-        if (hilo_read_addr == 0) begin //  read lo reg
+        if (hilo_read_addr == 1) begin //  read lo reg
             if (bypass_wb_lo_write_enable) get_hilo_data_forward = bypass_wb_lo_write_data;
             if (bypass_mem_lo_write_enable) get_hilo_data_forward = bypass_mem_lo_write_data;
         end else begin // read hi reg
