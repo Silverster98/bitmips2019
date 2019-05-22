@@ -14,8 +14,7 @@ reg [`GPR_BUS] hi;
 reg [`GPR_BUS] lo;
 
 // addr = 1 indicates select high
-assign hilo_read_data_o = (hilo_read_addr_i == 1'b1) ? hi : lo;
-
+assign hilo_read_data_o = (hilo_read_addr_i == 1'b1) ? (hi_write_enable_i ? hi_write_data_i : hi ): (lo_write_enable_i ? lo_write_data_i : lo);
 always @ (posedge clk) begin
     if(rst == `RST_ENABLE) begin
         hi <= `ZEROWORD32;
