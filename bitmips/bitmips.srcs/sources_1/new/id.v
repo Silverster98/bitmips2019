@@ -42,6 +42,11 @@ output wire [`EXCEP_TYPE_BUS] exception_type_o
 );
 
 reg instr_valid;
+
+reg is_break;
+reg is_syscall;
+reg is_eret;
+
 reg rs_read_enable;
 reg rt_read_enable;
 reg rs_stall_request;
@@ -66,8 +71,10 @@ assign pc_add8 = pc_i + 32'h8;
 assign imm16_o = instr_i[15:0];
 
 assign id_stall_request_o = rs_stall_request | rt_stall_request;
-assign exception_type_o = (instr_valid == 1) ? {exception_type_i[31],1'b0,exception_type_i[29:0]} :
-                 {exception_type_i[31],1'b1,exception_type_i[29:0]};
+
+
+
+assign exception_type_o = {exception_type_i[31],~instr_valid,exception_type_i[29],is_break,is_syscall,exception_type_i[26:1],is_eret};
 // load relevant
 always @ (*)
 begin
@@ -150,7 +157,10 @@ begin
 		instr_valid <= 1'b0;
 		cp0_read_addr_o <= rd;
 		hilo_read_addr_o <= 1'b0;
-		case(op)
+		is_eret <= 1'b0;
+        is_syscall <= 1'b0;
+        is_break <= 1'b0;
+        case(op)
 		6'b000000: begin  
 				case(funct)
 				`ID_AND: begin
@@ -255,30 +265,6 @@ begin
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
-//				`ID_SLL: begin
-//				    if(rs == 5'b0) begin
-//                        aluop_o <= `ALUOP_SLL;
-//                        regfile_write_enable_o <= 1'b1;
-//                        rt_read_enable <= 1'b1;
-//                        instr_valid <= 1'b1;
-//                    end
-//                end
-//                 `ID_SRA: begin
-//                    if(rs == 5'b0) begin
-//                        aluop_o <= `ALUOP_SRA;
-//                        regfile_write_enable_o <= 1'b1;
-//                        rt_read_enable <= 1'b1;
-//                        instr_valid <= 1'b1;
-//                    end
-//                end
-//                `ID_SRL: begin
-//                    if(rs == 5'b0) begin
-//                        aluop_o <= `ALUOP_SRL;
-//                        regfile_write_enable_o <= 1'b1;
-//                        rt_read_enable <= 1'b1;
-//                        instr_valid <= 1'b1;
-//                    end
-//                end
 				`ID_MFHI: begin
 					if(rs == 5'h0 && rt == 5'h0) begin
 						instr_valid <= 1'b1;
@@ -334,17 +320,18 @@ begin
 						regfile_write_enable_o <= 1'b1;
 					end
 				end
-				default:;
+			    `ID_SYSCALL: begin
+				    aluop_o <= `ALUOP_SYSCALL;
+				    instr_valid <= 1'b1;
+                    is_syscall <= 1'b1;
+                end
+                `ID_BREAK: begin
+				    aluop_o <= `ALUOP_BREAK;
+				    instr_valid <= 1'b1;
+                    is_break <= 1'b1;
+                end
+                default:;
 				endcase 
-			//end
-			if(funct == `ID_SYSCALL) begin
-				aluop_o <= `ALUOP_SYSCALL;
-				instr_valid <= 1'b1;
-			end
-			if(funct == `ID_BREAK) begin
-				aluop_o <= `ALUOP_BREAK;
-				instr_valid <= 1'b1;
-			end
 		end
 		6'b000001: begin//bgez bltz bgezal bltzal
 			case(rt)
@@ -588,7 +575,8 @@ begin
 		if(instr_i == `ID_ERET) begin
 			aluop_o <= `ALUOP_ERET;
 		  	instr_valid <= 1'b1; 			
-	    end else if(instr_i[31:21] == 11'b01000000000 && instr_i[10:3] == 8'b00000000) begin
+	        is_eret <= 1'b1;
+        end else if(instr_i[31:21] == 11'b01000000000 && instr_i[10:3] == 8'b00000000) begin
 			aluop_o <= `ALUOP_MFC0;		
 			instr_valid <= 1'b1;
 			regfile_write_enable_o <= 1'b1;
