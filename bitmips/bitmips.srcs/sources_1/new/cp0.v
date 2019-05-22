@@ -57,8 +57,12 @@ endtask
 
 function [31:0] cp0_read(input [`CP0_ADDR_BUS] read_addr);
 begin
-    if(cp0_write_enable_i && read_addr == cp0_write_addr_i)
-        cp0_read = cp0_write_data_i;
+    if(cp0_write_enable_i && read_addr == cp0_write_addr_i) begin
+        if(cp0_write_addr_i == 5'd13) // cp0_cause
+            cp0_read = {cp0_cause[31:24],cp0_write_data_i[23:22],cp0_cause[21:10],cp0_write_data_i[9:8],cp0_cause[7:0]};
+        else
+            cp0_read = cp0_write_data_i;
+    end
         /****************************************
          * some reg is readonly at some bit,so don't give all bit to cp0_read
          ****************************************/
@@ -194,7 +198,6 @@ begin
             de_asserted_exception();      
         update_timer(rubbish);
         handle_exception(exception_type_i);
-        //cp0_read_data_o = cp0_read(cp0_read_addr_i);
         if(cp0_write_enable_i)
             cp0_write(cp0_write_addr_i,cp0_write_data_i);
         cp0_return_pc_o <= cp0_return_pc;
