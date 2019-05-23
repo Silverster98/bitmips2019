@@ -119,7 +119,7 @@ module mips_top(
     pc mips_pc(
         .rst(rst),
         .clk(clk),
-        .stall(exe_stall_request),
+        .stall(exe_stall_request || id_stall_request),
         .exception(is_exception),
         .exception_pc_i(cp0_return_pc),
         .branch_enable_i(id_branch_enable),
@@ -141,7 +141,7 @@ module mips_top(
         .if_pc(if_pc_if_id),
         .if_instr(rom_instr_if_id),
         .exception(is_exception),
-        .stall(exe_stall_request),
+        .stall(exe_stall_request || id_stall_request),
         .if_exception_type(if_exception_type_if_id),
         
         .id_instr(if_id_instr_id),
