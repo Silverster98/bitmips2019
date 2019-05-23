@@ -130,10 +130,10 @@ module mips_top(
 //        .cs_o()
     );
     
-    rom mips_rom(
-        .a(if_pc_if_id[11:2]),
-        .spo(rom_instr_if_id)
-    );
+//    rom mips_rom(
+//        .a(if_pc_if_id[11:2]),
+//        .spo(rom_instr_if_id)
+//    );
     
     if_id mips_if_id(
         .rst(rst),
@@ -389,15 +389,15 @@ module mips_top(
         .ram_read_addr_o(mem_ram_read_addr)
     );
     
-    ram mips_ram(
-        .ram_write_select_i(mem_ram_write_select),
-        .ram_write_enable_i(mem_ram_write_enable),
-        .ram_write_addr_i(mem_ram_write_addr),
-        .ram_write_data_i(mem_ram_write_data),
-        .ram_read_addr_i(mem_ram_read_addr),
+//    ram mips_ram(
+//        .ram_write_select_i(mem_ram_write_select),
+//        .ram_write_enable_i(mem_ram_write_enable),
+//        .ram_write_addr_i(mem_ram_write_addr),
+//        .ram_write_data_i(mem_ram_write_data),
+//        .ram_read_addr_i(mem_ram_read_addr),
         
-        .ram_read_data(ram_read_data)
-    );
+//        .ram_read_data(ram_read_data)
+//    );
     
     mem_wb mips_mem_wb(
         .mem_regfile_write_enable(mem_regfile_write_enable_mem_wb),
