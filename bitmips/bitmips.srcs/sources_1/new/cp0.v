@@ -29,7 +29,6 @@ reg [`CP0_BUS] cp0_epc;
 //reg [`CP0_BUS] cp0_config;
 
 reg timer_int;
-reg rubbish;
 reg flush;
 reg [`CP0_BUS] cp0_return_pc;
 reg exception_flag;
@@ -73,6 +72,8 @@ begin
 //            cp0_read = cp0_prid;
 //        5'd16:
 //            cp0_read = cp0_config;
+         default:
+            cp0_read = 32'h0;
     endcase
     end
 end
@@ -182,6 +183,10 @@ end
 always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
+        flush <= 1'b0;
+        timer_int <= 1'b0;
+        exception_flag <= 1'b0;
+        cp0_return_pc <= `ZEROWORD32;
         cp0_badvaddr <= `ZEROWORD32;
         cp0_count <= `ZEROWORD32;
         cp0_compare <= `ZEROWORD32;

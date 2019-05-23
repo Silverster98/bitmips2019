@@ -359,11 +359,11 @@ begin
 			    rs_read_enable <= 1'b1;
 				instr_valid <= 1'b1;
 				aluop_o <= `ALUOP_BGEZAL;
+				regfile_write_enable_o <= 1'b1;
 				if(rs_data_o[31] == 1'b0) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
 					next_in_delayslot_o <= 1'b1;
-					regfile_write_enable_o <= 1'b1;
 					pc_return_addr_o <= pc_add8;
 				end
 			end
@@ -371,11 +371,11 @@ begin
 			    rs_read_enable <= 1'b1;
 				instr_valid <= 1'b1;
 				aluop_o <= `ALUOP_BGEZAL;
+				regfile_write_enable_o <= 1'b1;
 				if(rs_data_o[31] == 1'b1) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
 					next_in_delayslot_o <= 1'b1;
-					regfile_write_enable_o <= 1'b1;
 					pc_return_addr_o <= pc_add8;
 				end
 			end  
