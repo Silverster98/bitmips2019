@@ -135,6 +135,7 @@ task assert_exception_return(input [`EXCEP_CODE_BUS] exception_code);
 begin
     cp0_status[`EXL] = 0;
     cp0_return_pc = cp0_epc;
+    flush = 1'b1;
 end
 endtask
 

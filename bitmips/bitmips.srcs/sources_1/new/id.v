@@ -496,6 +496,7 @@ begin
 		`ID_LB: begin
 			aluop_o <= `ALUOP_LB;
 			rs_read_enable <= 1'b1;
+			rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
 			regfile_write_addr_o <= rt;
 			regfile_write_enable_o <= 1'b1;
@@ -504,6 +505,7 @@ begin
 		`ID_LBU: begin
 			aluop_o <= `ALUOP_LBU;
 			rs_read_enable <= 1'b1;
+			rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
 			regfile_write_addr_o <= rt;
 			regfile_write_enable_o <= 1'b1;
@@ -512,6 +514,7 @@ begin
 		`ID_LH: begin
 			aluop_o <= `ALUOP_LH;
 			rs_read_enable <= 1'b1;
+			rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
 			regfile_write_addr_o <= rt;
 			regfile_write_enable_o <= 1'b1;
@@ -520,6 +523,7 @@ begin
 		`ID_LHU: begin
 			aluop_o <= `ALUOP_LHU;
 			rs_read_enable <= 1'b1;
+			rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
 			regfile_write_addr_o <= rt;
 			regfile_write_enable_o <= 1'b1;
@@ -528,6 +532,7 @@ begin
 		`ID_LW: begin
 			aluop_o <= `ALUOP_LW;
 			rs_read_enable <= 1'b1;
+			rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
 			regfile_write_addr_o <= rt;
 			regfile_write_enable_o <= 1'b1;
@@ -537,17 +542,20 @@ begin
 			aluop_o <= `ALUOP_SB;
 			instr_valid <= 1'b1;
 			rt_read_enable <= 1'b1;
+			rs_read_enable <= 1'b1;
 			ram_write_enable_o <= 1'b1;
 		end
 		`ID_SH: begin
 			aluop_o <= `ALUOP_SH;
 			instr_valid <= 1'b1;
 			rt_read_enable <= 1'b1;
+			rs_read_enable <= 1'b1;
 			ram_write_enable_o <= 1'b1;
 		end
 		`ID_SW: begin
 			aluop_o <= `ALUOP_SW;
 			rt_read_enable <= 1'b1;
+			rs_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
 			ram_write_enable_o <= 1'b1;
 		end
@@ -579,10 +587,12 @@ begin
         end else if(instr_i[31:21] == 11'b01000000000 && instr_i[10:3] == 8'b00000000) begin
 			aluop_o <= `ALUOP_MFC0;		
 			instr_valid <= 1'b1;
+			rt_read_enable <= 1'b1;
 			regfile_write_enable_o <= 1'b1;
         end else if(instr_i[31:21] == 11'b01000000100 && instr_i[10:3] == 8'b00000000) begin
             aluop_o <= `ALUOP_MTC0;
             instr_valid <= 1'b1;	
+            rt_read_enable <= 1'b1;
             cp0_write_enable_o <= 1'b1;		
 		end
     end
