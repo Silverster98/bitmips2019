@@ -45,7 +45,7 @@ module ex(
     output reg[`INST_ADDR_BUS]   pc_o,
     output reg[`ALUOP_BUS]       aluop_o,
     output reg                   now_in_delayslot_o,
-    output reg[`EXCEP_TYPE_BUS]  exception_type_o,       ///
+    output wire[`EXCEP_TYPE_BUS] exception_type_o,       ///
     output reg                   regfile_write_enable_o,
     output reg                   ram_write_enable_o,
     output reg                   hi_write_enable_o,
@@ -64,8 +64,8 @@ module ex(
     );
     
     reg is_overflow;
-    wire exception_temp;
-    assign exception_temp = {exception_type_i[31:30], is_overflow, exception_type_i[28:0]};
+    //wire exception_temp;
+    assign exception_type_o = {exception_type_i[31:30], is_overflow, exception_type_i[28:0]};
     
     wire[`GPR_BUS] alu_output_data;
     wire[`GPR_BUS] hilo_data_forward, cp0_data_forward;
@@ -120,7 +120,7 @@ endfunction
             pc_o <= `ZEROWORD32;
             aluop_o <= 8'h00;
             now_in_delayslot_o <= 1'b0;
-            exception_type_o <= `ZEROWORD32;
+            //exception_type_o <= `ZEROWORD32;
             regfile_write_enable_o <= 1'b0;
             ram_write_enable_o <= 1'b0;
             hi_write_enable_o <= 1'b0;
@@ -139,7 +139,7 @@ endfunction
             pc_o <= pc_i;
             aluop_o <= aluop_i;
             now_in_delayslot_o <= now_in_delayslot_i;
-            exception_type_o <= exception_temp; // exception add overflow
+            //exception_type_o <= exception_temp; // exception add overflow
             regfile_write_enable_o <= regfile_write_enable_i;
             ram_write_enable_o <= ram_write_enable_i;
             hi_write_enable_o <= hi_write_enable_i;
