@@ -46,15 +46,6 @@ begin
 end
 endtask
 
-task update_timer(input rubbish);
-begin
-    cp0_count = cp0_count + 1;
-    if(cp0_compare != `ZEROWORD32 && cp0_compare == cp0_count)
-        timer_int = 1;
-end
-endtask
-
-
 function [31:0] cp0_read(input [`CP0_ADDR_BUS] read_addr);
 begin
     if(cp0_write_enable_i && read_addr == cp0_write_addr_i) begin
@@ -147,6 +138,17 @@ begin
 end
 endtask
 
+task update_timer;
+begin
+    cp0_count = cp0_count + 1;
+    if(cp0_compare != `ZEROWORD32 && cp0_compare == cp0_count) begin
+        timer_int = 1;
+        assert_exception(`EXCEP_CODE_INT,32'h0000_0020);
+    end
+    else 
+        timer_int = 0;
+end
+endtask
 
 task handle_exception(input [`EXCEP_TYPE_BUS] exception_type);
 begin
@@ -196,7 +198,7 @@ begin
         is_exception_asserted(exception_flag);
         if(exception_flag)
             de_asserted_exception();      
-        update_timer(rubbish);
+        update_timer();
         handle_exception(exception_type_i);
         if(cp0_write_enable_i)
             cp0_write(cp0_write_addr_i,cp0_write_data_i);
