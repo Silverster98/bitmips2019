@@ -3,3 +3,8 @@ bitmips.hw
 bitmips.ip_user_files
 bitmips.sim
 bitmips.runs
+mycpu.cache
+mycpu.hw
+mycpu.sim
+mycpu.runs
+mycpu.ip_user_files

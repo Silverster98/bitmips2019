@@ -6,7 +6,11 @@
 
 |--- bitmips/ mips具体实现的 vivado 项目
 
-|------ bitmips.xpr :bitmips vivado 工程，可直接使用vivado打开 
+|------ bitmips.xpr :bitmips vivado 工程，可直接使用vivado打开
+
+|--- soc_sram_func/ 龙芯soc功能测试
+
+|--- soft/ 功能测试代码 
 
 |--- mips框图说明.txt :架构图说明
 
