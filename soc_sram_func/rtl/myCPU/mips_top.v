@@ -13,7 +13,12 @@ module mips_top(
     output  [3:0]   data_sram_wen,
     output  [31:0]  data_sram_addr,
     output  [31:0]  data_sram_wdata,
-    input   [31:0]  data_sram_rdata
+    input   [31:0]  data_sram_rdata,
+    
+    output[31:0] debug_wb_pc,
+    output[3:0] debug_wb_wen,
+    output[4:0] debug_wb_num,
+    output[31:0] debug_wb_data
     );
     
     wire[`INST_ADDR_BUS] if_pc_if_id;
@@ -149,6 +154,11 @@ module mips_top(
     wire [`CP0_ADDR_BUS]   mem_cp0_write_addr_pre_mem;
     wire [`CP0_BUS]		   mem_cp0_write_data_pre_mem;
     `endif
+    
+    assign debug_wb_wen = (rst == `RST_ENABLE) ? 4'b0000 : {4{mem_wb_regfile_write_enable}};
+    assign debug_wb_num = (rst == `RST_ENABLE) ? 5'b00000 : mem_wb_regfile_write_addr;
+    assign debug_wb_data = (rst == `RST_ENABLE) ? 32'h00000000 : mem_wb_regfile_write_data;
+    
     pc mips_pc(
         .rst(rst),
         .clk(clk),
@@ -511,7 +521,10 @@ module mips_top(
         .wb_hi_write_enable(mem_wb_hi_write_enable),
         .wb_lo_write_enable(mem_wb_lo_write_enable),
         .wb_hi_write_data(mem_wb_hi_write_data),
-        .wb_lo_write_data(mem_wb_lo_write_data)
+        .wb_lo_write_data(mem_wb_lo_write_data),
+        
+        .in_wb_pc(mem_store_pc),
+        .wb_pc(debug_wb_pc)
     );
     
     regfile mips_regfile(

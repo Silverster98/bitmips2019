@@ -28,7 +28,9 @@ module mem_wb(
     output reg[`GPR_BUS] wb_lo_write_data,
     output reg wb_cp0_write_enable,
     output reg[`CP0_ADDR_BUS] wb_cp0_write_addr,
-    output reg[`GPR_BUS] wb_cp0_write_data
+    output reg[`GPR_BUS] wb_cp0_write_data,
+    input wire[31:0] in_wb_pc, ////////
+    output reg[31:0] wb_pc //////////////////////
     );
     
     always @ (posedge clk) begin
@@ -43,6 +45,7 @@ module mem_wb(
             wb_cp0_write_enable <= 1'b0;
             wb_cp0_write_addr <= `ZEROWORD5;
             wb_cp0_write_data <= `ZEROWORD32;
+            wb_pc <= `ZEROWORD32;
         end else begin
             wb_regfile_write_enable <= mem_regfile_write_enable;
             wb_regfile_write_addr <= mem_regfile_write_addr;
@@ -54,6 +57,7 @@ module mem_wb(
             wb_cp0_write_enable <= mem_cp0_write_enable;
             wb_cp0_write_addr <= mem_cp0_write_addr;
             wb_cp0_write_data <= mem_cp0_write_data;
+            wb_pc <= in_wb_pc;
         end
     end
 endmodule

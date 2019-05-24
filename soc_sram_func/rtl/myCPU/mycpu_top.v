@@ -26,10 +26,10 @@ assign inst_sram_wen = 4'b0000;
 
 assign data_sram_en = (resetn == `RST_ENABLE) ? 1'b0 : 1'b1;
 
-assign debug_wb_pc = `ZEROWORD32;
-assign debug_wb_rf_wen = 1'b0;
-assign debug_wb_rf_wnum = 1'b0;
-assign debug_wb_rf_wdata = 32'b0;
+//assign debug_wb_pc = `ZEROWORD32;
+//assign debug_wb_rf_wen = 1'b0;
+//assign debug_wb_rf_wnum = 1'b0;
+//assign debug_wb_rf_wdata = 32'b0;
 
 wire time_int_out;
 
@@ -44,6 +44,11 @@ mips_top mips_core(
 .data_sram_wen(data_sram_wen),
 .data_sram_addr(data_sram_addr),
 .data_sram_wdata(data_sram_wdata),
-.data_sram_rdata(inst_sram_rdata)
+.data_sram_rdata(inst_sram_rdata),
+
+.debug_wb_pc(debug_wb_pc),
+.debug_wb_wen(debug_wb_rf_wen),
+.debug_wb_num(debug_wb_rf_wnum),
+.debug_wb_data(debug_wb_rf_wdata)
 );
 endmodule

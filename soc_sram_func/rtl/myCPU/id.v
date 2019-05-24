@@ -80,7 +80,7 @@ always @ (*)
 begin
 	rs_stall_request <= 1'b0;
 	rt_stall_request <= 1'b0;
-	if(rst == 1'b1)
+	if(rst == `RST_ENABLE)
 		;
 	else if(exe_mem_to_reg_i == 1'b1 && rs_read_enable == 1'b1 && exe_regfile_write_addr_i == rs)
 		rs_stall_request <= 1'b1;
