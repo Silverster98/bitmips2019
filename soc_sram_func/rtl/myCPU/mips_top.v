@@ -5,7 +5,15 @@ module mips_top(
     input wire rst,
     
     input wire[5:0] interrupt,
-    output wire time_int_out
+    output wire time_int_out,
+    
+    output  [31:0]  inst_sram_addr,
+    input   [31:0]  inst_sram_rdata,
+    
+    output  [3:0]   data_sram_wen,
+    output  [31:0]  data_sram_addr,
+    output  [31:0]  data_sram_wdata,
+    input   [31:0]  data_sram_rdata
     );
     
     wire[`INST_ADDR_BUS] if_pc_if_id;
@@ -115,6 +123,14 @@ module mips_top(
     
     wire is_exception;
     wire [`INST_ADDR_BUS] cp0_return_pc;
+    
+    assign inst_sram_addr = if_pc_if_id;
+    assign inst_sram_rdata = rom_instr_if_id;
+    
+    assign data_sram_wen = mem_ram_write_enable ? mem_ram_write_select : 4'b0000;
+    assign data_sram_addr = mem_ram_write_enable ? mem_ram_write_addr : mem_ram_read_addr;
+    assign data_sram_wdata = mem_ram_write_data;
+    assign data_sram_rdata = ram_read_data;
     
     pc mips_pc(
         .rst(rst),

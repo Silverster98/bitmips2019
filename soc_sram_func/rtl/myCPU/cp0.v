@@ -121,13 +121,13 @@ endtask
 
 task assert_general_exception(input [`EXCEP_CODE_BUS] exception_code);
 begin
-    assert_exception(exception_code,32'h0000_0020);
+    assert_exception(exception_code,32'hbfc0_0380);
 end
 endtask
 
 task assert_general_memory_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] exception_addr);
 begin
-    assert_exception(exception_code,32'h0000_0020);
+    assert_exception(exception_code,32'hbfc0_0380);
     cp0_badvaddr = exception_addr_i;
 end
 endtask
@@ -145,7 +145,7 @@ begin
     cp0_count = cp0_count + 1;
     if(cp0_compare != `ZEROWORD32 && cp0_compare == cp0_count) begin
         timer_int = 1;
-        assert_exception(`EXCEP_CODE_INT,32'h0000_0020);
+        assert_exception(`EXCEP_CODE_INT,32'h0000_0380);
     end
     else 
         timer_int = 0;

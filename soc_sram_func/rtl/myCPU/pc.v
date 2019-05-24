@@ -15,7 +15,7 @@ output reg  [`INST_ADDR_BUS]  pc_o
 
 always @ (posedge clk) begin
     if (rst == `RST_ENABLE) begin
-        pc_o <= `ZEROWORD32;
+        pc_o <= 32'hbfc0_0000;
     end else begin
         if (exception == `EXCEPTION_ON) begin
             pc_o <= exception_pc_i;
