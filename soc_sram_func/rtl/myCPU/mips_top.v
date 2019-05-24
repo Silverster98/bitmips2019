@@ -191,7 +191,7 @@ module mips_top(
     );
     
     id mips_id(
-        .rst(rst),
+        .rst(rst & (~id_ex_now_in_delayslot_ex)),
         .instr_i(if_id_instr_id),
         .pc_i(if_id_pc_id),
         .rs_data_i(regfile_rs_data_id),
