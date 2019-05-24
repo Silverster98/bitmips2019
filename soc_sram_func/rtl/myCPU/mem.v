@@ -49,7 +49,10 @@ module mem(
     output reg ram_write_enable_o,
     output reg[`RAM_ADDR_BUS] ram_write_addr_o,
     output reg[`GPR_BUS] ram_write_data_o,
-    output reg[`RAM_ADDR_BUS] ram_read_addr_o
+    output reg[`RAM_ADDR_BUS] ram_read_addr_o,
+    
+    input wire pre_is_load,
+    output reg now_is_load
     );
     
     reg is_read_bad_addr, is_write_bad_addr;
@@ -215,6 +218,19 @@ module mem(
                     exception_type_o <= exception_type_i;
                 end
             endcase
+        end
+    end
+    
+    always @ (*) begin
+        if (rst == `RST_ENABLE) begin
+            now_is_load <= 1'b0;
+        end else begin
+            if (pre_is_load == 1'b1)
+                now_is_load <= 1'b0;
+            else begin
+                if (aluop_i == `ALUOP_LW || aluop_i == `ALUOP_LB || aluop_i == `ALUOP_LBU || aluop_i == `ALUOP_LH || aluop_i == `ALUOP_LHU)
+                    now_is_load <= 1'b1;
+            end
         end
     end
     

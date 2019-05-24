@@ -448,6 +448,7 @@ begin
 		`ID_JAL: begin
 			aluop_o <= `ALUOP_JAL;
 			pc_return_addr_o <= pc_add8;
+			branch_enable_o <= 1'b1;
 			branch_addr_o <= {pc_add4[31:28],instr_i[25:0],2'b00};
 			instr_valid <= 1'b1;
 			next_in_delayslot_o <= 1'b1;
