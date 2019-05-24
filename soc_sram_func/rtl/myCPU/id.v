@@ -96,7 +96,8 @@ begin
     else if(rs_read_enable == 1'b1 && bypass_ex_regfile_write_addr_i == rs 
     && bypass_ex_regfile_write_enable_i == 1'b1) 
         rs_data_o <= bypass_ex_regfile_write_data_i;
-	else if(rs_read_enable == 1'b1 && bypass_mem_regfile_write_addr_i == rs)
+	else if(rs_read_enable == 1'b1 && bypass_mem_regfile_write_addr_i == rs
+	&& bypass_mem_regfile_write_enable_i == 1'b1)
 		rs_data_o <= bypass_mem_regfile_write_data_i;
 	else if(rs_read_enable == 1'b1)
 		rs_data_o <= rs_data_i;
