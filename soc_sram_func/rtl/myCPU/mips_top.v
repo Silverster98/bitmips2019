@@ -125,12 +125,12 @@ module mips_top(
     wire [`INST_ADDR_BUS] cp0_return_pc;
     
     assign inst_sram_addr = if_pc_if_id;
-    assign inst_sram_rdata = rom_instr_if_id;
+    assign rom_instr_if_id = inst_sram_rdata;
     
     assign data_sram_wen = mem_ram_write_enable ? mem_ram_write_select : 4'b0000;
     assign data_sram_addr = mem_ram_write_enable ? mem_ram_write_addr : mem_ram_read_addr;
     assign data_sram_wdata = mem_ram_write_data;
-    assign data_sram_rdata = ram_read_data;
+    assign ram_read_data = data_sram_rdata;
     
     pc mips_pc(
         .rst(rst),
@@ -151,15 +151,29 @@ module mips_top(
 //        .spo(rom_instr_if_id)
 //    );
     
+    wire[31:0] pre_pc_if_id, pre_exception_type_if_id;
+    pc_pre mips_pre_pc(
+        .clk(clk),
+        .rst(rst),
+        .pre_pc(if_pc_if_id),
+        .pre_exception_type(if_exception_type_if_id),
+        .stall(exe_stall_request || id_stall_request),
+        .flush(is_exception),
+        .if_pc(pre_pc_if_id),
+        .if_exception_type(pre_exception_type_if_id)
+    );
+    
     if_id mips_if_id(
         .rst(rst),
         .clk(clk),
-        .if_pc(if_pc_if_id),
+//        .if_pc(if_pc_if_id),
+        .if_pc(pre_pc_if_id),
         .if_instr(rom_instr_if_id),
         .exception(is_exception),
         .stall(exe_stall_request || id_stall_request),
-        .if_exception_type(if_exception_type_if_id),
-        
+//        .if_exception_type(if_exception_type_if_id),
+        .if_exception_type(pre_exception_type_if_id),
+                
         .id_instr(if_id_instr_id),
         .id_pc(if_id_pc_id),
         .id_exception_type(if_id_exception_type_id)
