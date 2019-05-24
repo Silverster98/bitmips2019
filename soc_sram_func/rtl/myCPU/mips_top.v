@@ -132,6 +132,23 @@ module mips_top(
     assign data_sram_wdata = mem_ram_write_data;
     assign ram_read_data = data_sram_rdata;
     
+    `ifdef SRAM
+    wire [`INST_ADDR_BUS] pre_pc_if_id, pre_exception_type_if_id;
+    wire [`INST_ADDR_BUS]  mem_store_pc_pre_mem;
+    wire [`RAM_ADDR_BUS]   mem_access_mem_addr_pre_mem;
+    wire 				   mem_now_in_delayslot_pre_mem;
+    wire [`EXCEP_TYPE_BUS] mem_exception_type_pre_mem;
+    wire 				   mem_regfile_write_enable_pre_mem;
+    wire [`GPR_ADDR_BUS]   mem_regfile_write_addr_pre_mem;
+    wire [`GPR_BUS]		   mem_regfile_write_data_pre_mem;
+    wire 				   mem_hi_write_enable_pre_mem;
+    wire 				   mem_lo_write_enable_pre_mem;
+    wire [`GPR_BUS]		   mem_hi_write_data_pre_mem;
+    wire [`GPR_BUS]		   mem_lo_write_data_pre_mem;
+    wire 				   mem_cp0_write_enable_pre_mem;
+    wire [`CP0_ADDR_BUS]   mem_cp0_write_addr_pre_mem;
+    wire [`CP0_BUS]		   mem_cp0_write_data_pre_mem;
+    `endif
     pc mips_pc(
         .rst(rst),
         .clk(clk),
@@ -145,13 +162,7 @@ module mips_top(
         .exception_type_o(if_exception_type_if_id)
 //        .cs_o()
     );
-    
-//    rom mips_rom(
-//        .a(if_pc_if_id[11:2]),
-//        .spo(rom_instr_if_id)
-//    );
-    
-    wire[31:0] pre_pc_if_id, pre_exception_type_if_id;
+  
     pc_pre mips_pre_pc(
         .clk(clk),
         .rst(rst),
@@ -396,7 +407,7 @@ module mips_top(
         .ram_read_addr_i(ex_mem_ram_read_addr_mem),
         .ram_read_data_i(ram_read_data),
         .rst(rst),
-        
+        `ifndef SRAM
         .store_pc_o(mem_store_pc),
         .access_mem_addr_o(mem_access_mem_addr),
         .now_in_delayslot_o(mem_now_in_delayslot),
@@ -411,14 +422,64 @@ module mips_top(
         .cp0_write_addr_o(mem_cp0_write_addr),
         .cp0_write_data_o(mem_cp0_write_data),
         .regfile_write_data_o(mem_regfile_write_data_mem_wb),
-        
+        `else
+        .store_pc_o(mem_store_pc_pre_mem),
+        .access_mem_addr_o(mem_access_mem_addr_pre_mem),
+        .now_in_delayslot_o(mem_now_in_delayslot_pre_mem),
+        .exception_type_o(mem_exception_type_pre_mem),
+        .regfile_write_enable_o(mem_regfile_write_enable_pre_mem),
+        .regfile_write_addr_o(mem_regfile_write_addr_pre_mem),
+        .regfile_write_data_o(mem_regfile_write_data_pre_mem),
+        .hi_write_enable_o(mem_hi_write_enable_pre_mem),
+        .lo_write_enable_o(mem_lo_write_enable_pre_mem),
+        .hi_write_data_o(mem_hi_write_data_pre_mem),
+        .lo_write_data_o(mem_lo_write_data_pre_mem),
+        .cp0_write_enable_o(mem_cp0_write_enable_pre_mem),
+        .cp0_write_addr_o(mem_cp0_write_addr_pre_mem),
+        .cp0_write_data_o(mem_cp0_write_data_pre_mem),
+        `endif
         .ram_write_select_o(mem_ram_write_select),
         .ram_write_enable_o(mem_ram_write_enable),
         .ram_write_addr_o(mem_ram_write_addr),
         .ram_write_data_o(mem_ram_write_data),
         .ram_read_addr_o(mem_ram_read_addr)
     );
-    
+   `ifdef SRAM
+   pre_mem mips_pre_mem(
+    .clk(clk),
+    .rst(rst),
+    .exception(is_exception),
+    .pre_mem_store_pc(mem_access_mem_addr_pre_mem),
+    .pre_mem_access_mem_addr(mem_access_mem_addr_pre_mem),
+    .pre_mem_now_in_delayslot(mem_now_in_delayslot_pre_mem),
+    .pre_mem_exception_type(mem_exception_type_pre_mem),
+    .pre_mem_regfile_write_enable(mem_regfile_write_enable_pre_mem),
+    .pre_mem_regfile_write_addr(mem_regfile_write_addr_pre_mem),
+    .pre_mem_regfile_write_data(mem_regfile_write_data_pre_mem),
+    .pre_mem_hi_write_enable(mem_hi_write_enable_pre_mem),
+    .pre_mem_lo_write_enable(mem_lo_write_enable_pre_mem),
+    .pre_mem_hi_write_data(mem_hi_write_data_pre_mem),
+    .pre_mem_lo_write_data(mem_lo_write_data_pre_mem),
+    .pre_mem_cp0_write_enable(mem_cp0_write_enable_pre_mem),
+    .pre_mem_cp0_write_addr(mem_cp0_write_addr_pre_mem),
+    .pre_mem_cp0_write_data(mem_cp0_write_data_pre_mem),
+
+    .mem_store_pc(mem_store_pc),
+    .mem_access_mem_addr(mem_access_mem_addr),
+    .mem_now_in_delayslot(mem_now_in_delayslot),
+    .mem_exception_type(mem_exception_type),
+    .mem_regfile_write_enable(mem_regfile_write_enable_mem_wb),
+    .mem_regfile_write_addr(mem_regfile_write_addr_mem_wb),
+    .mem_regfile_write_data(mem_regfile_write_data_mem_wb),
+    .mem_hi_write_enable(mem_hi_write_enable_mem_wb),
+    .mem_lo_write_enable(mem_lo_write_enable_mem_wb),
+    .mem_hi_write_data(mem_hi_write_data_mem_wb),
+    .mem_lo_write_data(mem_lo_write_data_mem_wb),
+    .mem_cp0_write_enable(mem_cp0_write_enable),
+    .mem_cp0_write_addr(mem_cp0_write_addr),
+    .mem_cp0_write_data(mem_cp0_write_data)
+   );
+   `endif
 //    ram mips_ram(
 //        .ram_write_select_i(mem_ram_write_select),
 //        .ram_write_enable_i(mem_ram_write_enable),

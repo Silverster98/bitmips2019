@@ -117,7 +117,7 @@ end
 
 always @ (*)
 begin
-    if(rst == 1'b1)
+    if(rst == `RST_ENABLE)
     begin
         pc_o <= `ZEROWORD32;
 		instr_o <= `ZEROWORD32;
