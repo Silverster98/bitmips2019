@@ -101,6 +101,7 @@ begin
 		rs_data_o <= bypass_mem_regfile_write_data_i;
 	else if(rs_read_enable == 1'b1)
 		rs_data_o <= rs_data_i;
+	else rs_data_o <= 32'h0;
 end
 
 always @ (*)
@@ -110,10 +111,12 @@ begin
     else if(rt_read_enable == 1'b1 && bypass_ex_regfile_write_addr_i == rt 
     && bypass_ex_regfile_write_enable_i == 1'b1) 
         rt_data_o <= bypass_ex_regfile_write_data_i;
-	else if(rt_read_enable == 1'b1 && bypass_mem_regfile_write_addr_i == rt)
+	else if(rt_read_enable == 1'b1 && bypass_mem_regfile_write_addr_i == rt
+	&& bypass_mem_regfile_write_enable_i == 1'b1)
 		rt_data_o <= bypass_mem_regfile_write_data_i;
 	else if(rt_read_enable == 1'b1)
 		rt_data_o <= rt_data_i;
+	else rt_data_o <= 32'h0;
 end
 
 always @ (*)
