@@ -10,6 +10,7 @@ module mips_top(
     output  [31:0]  inst_sram_addr,
     input   [31:0]  inst_sram_rdata,
     
+    output          data_sram_read_enable,
     output  [3:0]   data_sram_wen,
     output  [31:0]  data_sram_addr,
     output  [31:0]  data_sram_wdata,
@@ -18,7 +19,10 @@ module mips_top(
     output[31:0] debug_wb_pc,
     output[3:0] debug_wb_wen,
     output[4:0] debug_wb_num,
-    output[31:0] debug_wb_data
+    output[31:0] debug_wb_data,
+    
+    input wire inst_stall,
+    input wire data_stall
     );
     
     wire[`INST_ADDR_BUS] if_pc_if_id;
@@ -113,6 +117,7 @@ module mips_top(
     wire[`GPR_BUS] mem_regfile_write_data_mem_wb;
     wire[3:0] mem_ram_write_select;
     wire mem_ram_write_enable;
+    wire mem_ram_read_enable;
     wire[`RAM_ADDR_BUS] mem_ram_write_addr;
     wire[`GPR_BUS] mem_ram_write_data;
     wire[`RAM_ADDR_BUS] mem_ram_read_addr;
@@ -132,24 +137,22 @@ module mips_top(
     assign inst_sram_addr = if_pc_if_id;
     assign rom_instr_if_id = inst_sram_rdata;
     
+    assign data_sram_read_enable  = mem_ram_read_enable;
     assign data_sram_wen = mem_ram_write_enable ? mem_ram_write_select : 4'b0000;
     assign data_sram_addr = mem_ram_write_enable ? mem_ram_write_addr : mem_ram_read_addr;
     assign data_sram_wdata = mem_ram_write_data;
     assign ram_read_data = data_sram_rdata;
     
-    wire [`INST_ADDR_BUS] pre_pc_if_id, pre_exception_type_if_id;
-    
     assign debug_wb_wen = (rst == `RST_ENABLE) ? 4'b0000 : {4{mem_wb_regfile_write_enable}};
     assign debug_wb_num = (rst == `RST_ENABLE) ? 5'b00000 : mem_wb_regfile_write_addr;
     assign debug_wb_data = (rst == `RST_ENABLE) ? 32'h00000000 : mem_wb_regfile_write_data;
-    
-    wire now_is_load;
-    wire pre_load_stall;
+
     
     pc mips_pc(
         .rst(rst),
         .clk(clk),
-        .stall(exe_stall_request || id_stall_request || now_is_load),
+        .stall(exe_stall_request || id_stall_request || data_stall),
+        .inst_stall(inst_stall),
         .exception(is_exception),
         .exception_pc_i(cp0_return_pc),
         .branch_enable_i(id_branch_enable),
@@ -157,30 +160,17 @@ module mips_top(
         
         .pc_o(if_pc_if_id),
         .exception_type_o(if_exception_type_if_id)
-//        .cs_o()
     );
-  
-    pc_pre mips_pre_pc(
-        .clk(clk),
-        .rst(rst),
-        .pre_pc(if_pc_if_id),
-        .pre_exception_type(if_exception_type_if_id),
-        .stall(exe_stall_request || id_stall_request || now_is_load),
-        .flush(is_exception),
-        .if_pc(pre_pc_if_id),
-        .if_exception_type(pre_exception_type_if_id)
-    );
-    
+
     if_id mips_if_id(
         .rst(rst),
         .clk(clk),
-//        .if_pc(if_pc_if_id),
-        .if_pc(pre_pc_if_id),
-        .if_instr(rom_instr_if_id),
+        .if_pc(if_pc_if_id),
+        .if_instr(rom_instr_if_id), 
         .exception(is_exception),
-        .stall(exe_stall_request || id_stall_request || now_is_load),
-//        .if_exception_type(if_exception_type_if_id),
-        .if_exception_type(pre_exception_type_if_id),
+        .inst_stall(inst_stall),
+        .stall(exe_stall_request || id_stall_request || data_stall),
+        .if_exception_type(if_exception_type_if_id),
                 
         .id_instr(if_id_instr_id),
         .id_pc(if_id_pc_id),
@@ -188,7 +178,8 @@ module mips_top(
     );
     
     id mips_id(
-        .rst(rst & (~id_ex_now_in_delayslot_ex)),
+        .rst(rst),
+//        .rst(rst & (~id_ex_now_in_delayslot_ex)),
         .instr_i(if_id_instr_id),
         .pc_i(if_id_pc_id),
         .rs_data_i(regfile_rs_data_id),
@@ -252,7 +243,7 @@ module mips_top(
         .id_hilo_read_addr(id_hilo_read_addr_id_ex),
         .id_cp0_read_addr(id_cp0_read_addr_id_ex),
         .exception(is_exception),
-        .stall(exe_stall_request || now_is_load),
+        .stall(exe_stall_request || data_stall),
         .clk(clk),
         .rst(rst),
         
@@ -356,8 +347,8 @@ module mips_top(
         .exe_lo_write_data(ex_lo_write_data_ex_mem),
         .exe_cp0_write_data(ex_cp0_write_data_ex_mem),
         .exe_mem_to_reg(ex_mem_to_reg_ex_mem),
-        .exception(is_exception),
-        .stall(exe_stall_request || now_is_load),
+        .exception(is_exception || exe_stall_request),
+        .stall(data_stall),
         .rst(rst),
         .clk(clk),
         
@@ -425,20 +416,8 @@ module mips_top(
         .ram_write_addr_o(mem_ram_write_addr),
         .ram_write_data_o(mem_ram_write_data),
         .ram_read_addr_o(mem_ram_read_addr),
-        
-        .pre_is_load(pre_load_stall),
-        .now_is_load(now_is_load)
+        .ram_read_enable_o(mem_ram_read_enable)
     );
-    
-//    ram mips_ram(
-//        .ram_write_select_i(mem_ram_write_select),
-//        .ram_write_enable_i(mem_ram_write_enable),
-//        .ram_write_addr_i(mem_ram_write_addr),
-//        .ram_write_data_i(mem_ram_write_data),
-//        .ram_read_addr_i(mem_ram_read_addr),
-        
-//        .ram_read_data(ram_read_data)
-//    );
     
     mem_wb mips_mem_wb(
         .mem_regfile_write_enable(mem_regfile_write_enable_mem_wb),
@@ -451,7 +430,7 @@ module mips_top(
         .mem_cp0_write_addr(mem_cp0_write_addr),
         .mem_cp0_write_data(mem_cp0_write_data),
         .mem_regfile_write_data(mem_regfile_write_data_mem_wb),
-        .exception(is_exception || now_is_load),
+        .exception(is_exception || data_stall),
         .rst(rst),
         .clk(clk),
         
@@ -464,9 +443,7 @@ module mips_top(
         .wb_lo_write_data(mem_wb_lo_write_data),
         
         .in_wb_pc(mem_store_pc),
-        .wb_pc(debug_wb_pc),
-        .load_stall(now_is_load),
-        .pre_load_stall(pre_load_stall)
+        .wb_pc(debug_wb_pc)
     );
     
     regfile mips_regfile(
@@ -494,7 +471,7 @@ module mips_top(
         .hilo_read_data_o(hilo_data_id_ex)
     );
     
-     //==
+    //==
     cp0 mips_cp0(
         .clk(clk),
         .rst(rst),

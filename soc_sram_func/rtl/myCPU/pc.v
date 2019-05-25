@@ -3,6 +3,7 @@ module pc(
 input wire                    rst,
 input wire                    clk,
 input wire                    stall,
+input wire                    inst_stall,
 input wire                    exception,
 input wire  [`INST_ADDR_BUS]  exception_pc_i,
 input wire                    branch_enable_i,
@@ -23,7 +24,7 @@ always @ (posedge clk) begin
             if (branch_enable_i == `BRANCH_ENABLE) begin
                 pc_o <= branch_addr_i;
             end else begin
-                pc_o <= pc_o + 4;
+                if (inst_stall != 1'b1) pc_o <= pc_o + 4;
             end
         end
     end

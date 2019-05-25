@@ -6,6 +6,7 @@ module if_id(
     input wire [`INST_ADDR_BUS]  if_pc,
     input wire [`INST_BUS]       if_instr,
     input wire                   exception,
+    input wire                   inst_stall,
     input wire                   stall,
 	input wire [`EXCEP_TYPE_BUS] if_exception_type,
 		
@@ -21,10 +22,15 @@ module if_id(
             id_exception_type <= 6'h0;
         end else begin
             if (stall == `NOSTOP) begin
-                id_pc <= if_pc;
-                id_instr <= if_instr;
-                id_exception_type <= if_exception_type;
-
+                if (inst_stall == 1'b1) begin
+                    id_pc <= `ZEROWORD32;
+                    id_instr <= `ZEROWORD32;
+                    id_exception_type <= `ZEROWORD32;
+                end else begin
+                    id_pc <= if_pc;
+                    id_instr <= if_instr;
+                    id_exception_type <= if_exception_type;
+                end 
             end
         end
     end

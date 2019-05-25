@@ -14,9 +14,6 @@ module mem_wb(
     input wire mem_cp0_write_enable,
     input wire[`CP0_ADDR_BUS] mem_cp0_write_addr,
     input wire[`GPR_BUS] mem_cp0_write_data,
-//    input wire mem_mem_to_reg,
-//    input wire[`GPR_BUS] mem_alu_data,
-//    input wire[`GPR_BUS] mem_ram_data,
     input wire[`GPR_BUS] mem_regfile_write_data,
     
     output reg wb_regfile_write_enable,
@@ -30,10 +27,8 @@ module mem_wb(
     output reg[`CP0_ADDR_BUS] wb_cp0_write_addr,
     output reg[`GPR_BUS] wb_cp0_write_data,
     
-    input wire[31:0] in_wb_pc, ////////
-    output reg[31:0] wb_pc, //////////////////////
-    input wire load_stall,
-    output reg pre_load_stall
+    input wire[31:0] in_wb_pc,
+    output reg[31:0] wb_pc
     );
     
     always @ (posedge clk) begin
@@ -49,11 +44,6 @@ module mem_wb(
             wb_cp0_write_addr <= `ZEROWORD5;
             wb_cp0_write_data <= `ZEROWORD32;
             wb_pc <= `ZEROWORD32;
-            if (rst == `RST_ENABLE) begin
-                pre_load_stall <= 1'b0;
-            end else begin
-                pre_load_stall <= load_stall;
-            end
         end else begin
             wb_regfile_write_enable <= mem_regfile_write_enable;
             wb_regfile_write_addr <= mem_regfile_write_addr;
@@ -66,7 +56,6 @@ module mem_wb(
             wb_cp0_write_addr <= mem_cp0_write_addr;
             wb_cp0_write_data <= mem_cp0_write_data;
             wb_pc <= in_wb_pc;
-            pre_load_stall <= load_stall;
         end
     end
 endmodule
