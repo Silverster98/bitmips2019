@@ -25,6 +25,7 @@ reg [`CP0_BUS] cp0_status;
 reg [`CP0_BUS] cp0_cause;
 reg [`CP0_BUS] cp0_epc;
 
+reg is_int;
 reg timer_int;
 reg flush;
 reg [`CP0_BUS] cp0_return_pc;
@@ -83,7 +84,7 @@ begin
         5'd12://status
         begin
             cp0_status[15:8] = write_data[15:8];
-            cp0_status[1:0] = write_data[15:8];
+            cp0_status[1:0] = write_data[1:0];
         end
         5'd13:
         begin
@@ -95,21 +96,23 @@ begin
 end
 endtask
 
-task assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] int_offset);
+task assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] int_offset, input [`INST_BUS] pc);
 begin
     if(cp0_status[`EXL] ==0) begin
         if(now_in_delayslot_i == 1'b1) begin
-            cp0_epc = pc_i - 4;
+            cp0_epc = pc - 4;
             cp0_cause[`BD] = 1;
         end else begin
-            cp0_epc = pc_i;
+            cp0_epc = pc;
             cp0_cause[`BD] = 0;
         end
+        flush = 1'b1;
     end
+    else flush = 1'b0;
     cp0_status[`EXL] = 1;
     cp0_return_pc = int_offset;
     
-    flush = 1'b1;
+  
     cp0_cause[6:2] = exception_code;
 end
 endtask
@@ -117,13 +120,13 @@ endtask
 
 task assert_general_exception(input [`EXCEP_CODE_BUS] exception_code);
 begin
-    assert_exception(exception_code,32'hbfc0_0380);
+    assert_exception(exception_code,32'hbfc0_0380,pc_i);
 end
 endtask
 
 task assert_general_memory_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] exception_addr);
 begin
-    assert_exception(exception_code,32'hbfc0_0380);
+    assert_exception(exception_code,32'hbfc0_0380,pc_i);
     cp0_badvaddr = exception_addr;
 end
 endtask
@@ -141,7 +144,7 @@ begin
     cp0_count = cp0_count + 1;
     if(cp0_compare != `ZEROWORD32 && cp0_compare == cp0_count) begin
         timer_int = 1;
-        assert_exception(`EXCEP_CODE_INT,32'h0000_0380);
+        assert_exception(`EXCEP_CODE_INT,32'h0000_0380,pc_i);
     end
     else 
         timer_int = 0;
@@ -172,9 +175,10 @@ endtask
 
 task handle_interrupt;
 begin
-    if( cp0_cause[15:9] & cp0_status[15:9]) begin
-        assert_exception(`EXCEP_CODE_INT,32'hbfc0_0380);
+    if( cp0_cause[15:8] & cp0_status[15:8]) begin
+        assert_exception(`EXCEP_CODE_INT,32'hbfc0_0380,pc_i + 4);
     end
+
 end
 endtask
 
