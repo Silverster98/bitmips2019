@@ -33,6 +33,23 @@
 `define EXL             1
 `define ERL             2
 `define BD              31
+`define IP7             15
+`define IP6             14
+`define IP5             13
+`define IP4             12
+`define IP3             11
+`define IP2             10
+`define IP1             9
+
+// status reg
+`define IM7             15
+`define IM6             14
+`define IM5             13
+`define IM4             12
+`define IM3             11
+`define IM2             10
+`define IM1             9
+
 
 // exception
 `define EXCEPTION_ON   1'b1           // exception

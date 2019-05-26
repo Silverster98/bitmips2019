@@ -47,7 +47,9 @@ begin
     if(cp0_write_enable_i && read_addr == cp0_write_addr_i) begin
         if(cp0_write_addr_i == 5'd13) // cp0_cause
             cp0_read = {cp0_cause[31:10],cp0_write_data_i[9:8],cp0_cause[7:0]};
-        else
+        else if(cp0_write_addr_i == 5'd12) //cp0_status
+            cp0_read = {cp0_status[31:16],cp0_write_data_i[15:8],cp0_status[7:2],cp0_write_data_i[1:0]};
+        else 
             cp0_read = cp0_write_data_i;
     end
     else begin
@@ -78,8 +80,11 @@ begin
             cp0_count = write_data;
         5'd11: //compare
             cp0_compare = write_data;
-        5'd12:
-            cp0_status = write_data;
+        5'd12://status
+        begin
+            cp0_status[15:8] = write_data[15:8];
+            cp0_status[1:0] = write_data[15:8];
+        end
         5'd13:
         begin
             cp0_cause[9:8] = write_data[9:8];
@@ -92,7 +97,7 @@ endtask
 
 task assert_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] int_offset);
 begin
-    if(cp0_cause[`EXL] ==0) begin
+    if(cp0_status[`EXL] ==0) begin
         if(now_in_delayslot_i == 1'b1) begin
             cp0_epc = pc_i - 4;
             cp0_cause[`BD] = 1;
@@ -103,6 +108,7 @@ begin
     end
     cp0_status[`EXL] = 1;
     cp0_return_pc = int_offset;
+    
     flush = 1'b1;
     cp0_cause[6:2] = exception_code;
 end
@@ -164,6 +170,15 @@ begin
 end
 endtask
 
+task handle_interrupt;
+begin
+    if( cp0_cause[15:9] & cp0_status[15:9]) begin
+        assert_exception(`EXCEP_CODE_INT,32'hbfc0_0380);
+    end
+end
+endtask
+
+
 always @(*)
 begin
     cp0_read_data_o = cp0_read(cp0_read_addr_i);
@@ -194,9 +209,10 @@ begin
         handle_exception(exception_type_i);
         if(cp0_write_enable_i)
             cp0_write(cp0_write_addr_i,cp0_write_data_i);
+        handle_interrupt();
         cp0_return_pc_o <= cp0_return_pc;
         timer_int_o <= timer_int;
-        flush_o <= flush;
+        flush_o <=  flush;
     end
 end
 
