@@ -83,7 +83,6 @@ module id_ex(
             ex_load_upper_imm16 <= `ZEROWORD32;
             ex_hilo_read_addr <= 1'b0;
             ex_cp0_read_addr <= 5'b00000;
-            //***
             ex_id_now_in_delayslot <= 1'b0;
             ex_exception_type <= 6'h0;
         end else begin
@@ -111,7 +110,7 @@ module id_ex(
                 ex_load_upper_imm16 <= `ZEROWORD32;
                 ex_hilo_read_addr <= 1'b0;
                 ex_cp0_read_addr <= 5'b00000;
-                ex_id_now_in_delayslot <= 1'b0;
+                ex_id_now_in_delayslot <= ex_id_now_in_delayslot; // delayslot signal need to stall
                 ex_exception_type <= 6'h0;
             end else begin
                 if (data_stall != 1'b1) begin
