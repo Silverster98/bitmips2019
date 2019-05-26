@@ -151,8 +151,7 @@ module mips_top(
     pc mips_pc(
         .rst(rst),
         .clk(clk),
-        .stall(exe_stall_request || id_stall_request || data_stall),
-        .inst_stall(inst_stall),
+        .stall({data_stall, exe_stall_request, id_stall_request, inst_stall}),
         .exception(is_exception),
         .exception_pc_i(cp0_return_pc),
         .branch_enable_i(id_branch_enable),
@@ -168,8 +167,7 @@ module mips_top(
         .if_pc(if_pc_if_id),
         .if_instr(rom_instr_if_id), 
         .exception(is_exception),
-        .inst_stall(inst_stall),
-        .stall(exe_stall_request || id_stall_request || data_stall),
+        .stall({data_stall, exe_stall_request, id_stall_request, inst_stall}),
         .if_exception_type(if_exception_type_if_id),
                 
         .id_instr(if_id_instr_id),
@@ -229,7 +227,6 @@ module mips_top(
         .id_now_in_delayslot(id_now_in_delayslot_id_ex),
         .id_next_in_delayslot(id_next_in_delayslot_id_ex),
         .id_exception_type(id_exception_type_id_ex),
-        .id_stall_request(id_stall_request),
         .id_regfile_write_enable(id_regfile_write_enable_id_ex),
         .id_ram_write_enable(id_ram_write_enable_id_ex),
         .id_hi_write_enable(id_hi_write_enable_id_ex),
@@ -243,7 +240,7 @@ module mips_top(
         .id_hilo_read_addr(id_hilo_read_addr_id_ex),
         .id_cp0_read_addr(id_cp0_read_addr_id_ex),
         .exception(is_exception),
-        .stall(exe_stall_request || data_stall),
+        .stall({data_stall, exe_stall_request, id_stall_request, inst_stall}),
         .clk(clk),
         .rst(rst),
         
@@ -347,8 +344,8 @@ module mips_top(
         .exe_lo_write_data(ex_lo_write_data_ex_mem),
         .exe_cp0_write_data(ex_cp0_write_data_ex_mem),
         .exe_mem_to_reg(ex_mem_to_reg_ex_mem),
-        .exception(is_exception || exe_stall_request),
-        .stall(data_stall),
+        .exception(is_exception),
+        .stall({data_stall, exe_stall_request, id_stall_request, inst_stall}),
         .rst(rst),
         .clk(clk),
         
@@ -430,7 +427,8 @@ module mips_top(
         .mem_cp0_write_addr(mem_cp0_write_addr),
         .mem_cp0_write_data(mem_cp0_write_data),
         .mem_regfile_write_data(mem_regfile_write_data_mem_wb),
-        .exception(is_exception || data_stall),
+        .stall({data_stall, exe_stall_request, id_stall_request, inst_stall}),
+        .exception(is_exception),
         .rst(rst),
         .clk(clk),
         

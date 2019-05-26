@@ -13,7 +13,6 @@ input wire [`INST_BUS]       exception_addr_i,
 input wire [5:0]             int_i,
 input wire                   now_in_delayslot_i,
 output reg [`CP0_BUS]        cp0_read_data_o,
-//output reg [`CP0_BUS]        cp0_badvaddr_o,
 output reg [`CP0_BUS]        cp0_return_pc_o,    
 output reg                   timer_int_o,    
 output reg                   flush_o
@@ -25,8 +24,6 @@ reg [`CP0_BUS] cp0_compare;
 reg [`CP0_BUS] cp0_status;
 reg [`CP0_BUS] cp0_cause;
 reg [`CP0_BUS] cp0_epc;
-//reg [`CP0_BUS] cp0_prid;
-//reg [`CP0_BUS] cp0_config;
 
 reg timer_int;
 reg flush;
@@ -49,15 +46,14 @@ function [31:0] cp0_read(input [`CP0_ADDR_BUS] read_addr);
 begin
     if(cp0_write_enable_i && read_addr == cp0_write_addr_i) begin
         if(cp0_write_addr_i == 5'd13) // cp0_cause
-            cp0_read = {cp0_cause[31:24],cp0_write_data_i[23:22],cp0_cause[21:10],cp0_write_data_i[9:8],cp0_cause[7:0]};
+            cp0_read = {cp0_cause[31:10],cp0_write_data_i[9:8],cp0_cause[7:0]};
         else
             cp0_read = cp0_write_data_i;
     end
-        /****************************************
-         * some reg is readonly at some bit,so don't give all bit to cp0_read
-         ****************************************/
     else begin
     case(read_addr)
+        5'd8: //badVaddr
+            cp0_read = cp0_badvaddr;
         5'd9: //count:
             cp0_read = cp0_count;
         5'd11: //compare
@@ -68,10 +64,6 @@ begin
             cp0_read = cp0_cause;
         5'd14: //epc:
             cp0_read = cp0_epc;
-//        5'd15:
-//            cp0_read = cp0_prid;
-//        5'd16:
-//            cp0_read = cp0_config;
          default:
             cp0_read = 32'h0;
     endcase
@@ -91,9 +83,8 @@ begin
         5'd13:
         begin
             cp0_cause[9:8] = write_data[9:8];
-            cp0_cause[23:22] = write_data[23:22];
         end
-        5'd16:
+        5'd14:
             cp0_epc = write_data;
     endcase
 end
@@ -111,7 +102,6 @@ begin
         end
     end
     cp0_status[`EXL] = 1;
-    //cp0_return_pc = int_offset + 32'hbfc0000;
     cp0_return_pc = int_offset;
     flush = 1'b1;
     cp0_cause[6:2] = exception_code;
@@ -128,7 +118,7 @@ endtask
 task assert_general_memory_exception(input [`EXCEP_CODE_BUS] exception_code, input [`INST_BUS] exception_addr);
 begin
     assert_exception(exception_code,32'hbfc0_0380);
-    cp0_badvaddr = exception_addr_i;
+    cp0_badvaddr = exception_addr;
 end
 endtask
 
@@ -155,13 +145,13 @@ endtask
 task handle_exception(input [`EXCEP_TYPE_BUS] exception_type);
 begin
     if(exception_type[31] == 1'b1) begin  
-        assert_general_memory_exception(`EXCEP_CODE_ADEL,exception_addr_i);
+        assert_general_memory_exception(`EXCEP_CODE_ADEL,pc_i);
     end else if(exception_type[30] == 1'b1) begin
         assert_general_exception(`EXCEP_CODE_RI); 
     end else if(exception_type[29] == 1'b1) begin
         assert_general_exception(`EXCEP_CODE_OV); 
     end else if(exception_type[28] == 1'b1) begin
-        assert_general_exception(`EXCEP_CODE_TR);
+        assert_general_exception(`EXCEP_CODE_BP);
     end else if(exception_type[27] == 1'b1) begin
         assert_general_exception(`EXCEP_CODE_SYS);
     end else if(exception_type[26] == 1'b1) begin
@@ -193,13 +183,9 @@ begin
         // [31:  28]
         // CU3...CU0
         // CU0 = 1 -> enable cp0 
-        cp0_status <= 32'h10000000;
+        cp0_status <= 32'b00000000010000000000000000000000;
         cp0_cause <= `ZEROWORD32;
         cp0_epc <= `ZEROWORD32;
-        // littel endian
-//        cp0_config <= `ZEROWORD32;
-        // cp0_prid seems not important
-//        cp0_prid <= `ZEROWORD32;
     end else begin
         is_exception_asserted(exception_flag);
         if(exception_flag)

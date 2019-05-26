@@ -53,7 +53,14 @@ module mem(
     
     always @ (*) begin
         if (rst == `RST_ENABLE) begin
-            regfile_write_enable_o <= 1'b0;
+            regfile_write_enable_o <= 32'h0;
+        end else begin
+            regfile_write_enable_o <= (exception_type_i != 32'h0) ? 1'b0 : regfile_write_enable_i;
+        end
+    end
+    
+    always @ (*) begin
+        if (rst == `RST_ENABLE) begin
             regfile_write_addr_o <= `ZEROWORD5;
             hi_write_enable_o <= 1'b0;
             hi_write_data_o <= `ZEROWORD32;
@@ -64,7 +71,6 @@ module mem(
             cp0_write_data_o <= `ZEROWORD32;
             regfile_write_data_o <= `ZEROWORD32;
         end else begin
-            regfile_write_enable_o <= regfile_write_enable_i;
             regfile_write_addr_o <= regfile_write_addr_i;
             hi_write_enable_o <= hi_write_enable_i;
             hi_write_data_o <= hi_write_data_i;
@@ -146,7 +152,7 @@ module mem(
             is_write_bad_addr <= 1'b0;
         end else begin
             ram_write_addr_o <= {ram_write_addr_i[31:2], 2'b00};
-            ram_write_enable_o <= ram_write_enable_i;
+            ram_write_enable_o <= (is_write_bad_addr == 1'b1) ? 1'b0 : ram_write_enable_i;
             
             case (aluop_i)
                 `ALUOP_SB : begin

@@ -5,6 +5,7 @@ module mem_wb(
     input wire clk,
     input wire rst,
     input wire exception,
+    input wire[3:0] stall,
     input wire mem_regfile_write_enable,
     input wire[`GPR_ADDR_BUS] mem_regfile_write_addr,
     input wire mem_hi_write_enable,
@@ -31,8 +32,14 @@ module mem_wb(
     output reg[31:0] wb_pc
     );
     
+    wire inst_stall, id_stall, exe_stall, data_stall;
+    assign inst_stall = stall[0];
+    assign id_stall = stall[1];
+    assign exe_stall = stall[2];
+    assign data_stall = stall[3];
+    
     always @ (posedge clk) begin
-        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON) begin
+        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON || data_stall == 1'b1) begin
             wb_regfile_write_enable <= 1'b0;
             wb_regfile_write_addr <= `ZEROWORD5;
             wb_regfile_write_data <= `ZEROWORD32;
