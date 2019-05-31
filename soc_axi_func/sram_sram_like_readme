@@ -1,0 +1,11 @@
+类sram的接口的定义由龙芯提供，本质上sram到类sram是一个状态机，对于inst_sram_to_sram_like来说，首先进入的状态是
+(1) state_idle
+当rst使能的时候，当前状态一直保持idle，所有的输出信号复位，之后，若rst没有使能，则进入state_req
+(2) state_req
+和data_sram不同，inst_sram是不停的请求，所以直接进入req，进入req后，立刻使能stall信号，从而保持地址请求不变。根据类sram的波形图使能相应的信号
+(3) state_wait_addr
+由类sram一次读请求可知，首先会收到一个addr_ok信号，然后进入state_wait_data 等待data_ok。 另外，这里有一种特殊情况，就是异常，收到一个异常信号之后，需要舍弃当前的请求，因为异常判断是在mem级那里，所以异常的下一条指令已经请求了，这个时候需要手动清除inst_req，然后更新请求地址为新的，同样等一个addr_ok和data_ok。
+(4) state_wait_addr_twice
+由于是有一个异常信号，所以进入这个状态，他实际上并不是等两次addr_ok，还是一次addr_ok。
+(5) state_wait_data
+进入这个状态的时候需要等待的是data_ok这个信号，接收到这个信号之后，就可以更新新的指令内容了。然后返回state_req,因为是不停的请求，所以可以没有done这个过程了。
