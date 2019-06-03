@@ -126,6 +126,8 @@ begin
         pc_o <= `ZEROWORD32;
 		instr_o <= `ZEROWORD32;
         aluop_o <= 8'h0;   
+        rs_read_enable <= 1'b0;
+        rt_read_enable <= 1'b0;
         regfile_write_addr_o <= 5'h0;
         now_in_delayslot_o <= 1'b0;
 		next_in_delayslot_o <= 1'b0;
@@ -140,6 +142,10 @@ begin
 		hilo_read_addr_o <= 1'b0;
 		branch_enable_o <= 1'b0;
         branch_addr_o <= `ZEROWORD32;
+        instr_valid <= 1'b0;
+        is_eret<= 1'b0;
+        is_syscall <= 1'b0;
+        is_break <= 1'b0;
     end else begin
         pc_o <= pc_i;
 		instr_o <= instr_i;
