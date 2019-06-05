@@ -5,17 +5,17 @@ input rst,
 // sram
 input             flush,
 input      [31:0] inst_sram_addr,
-output reg [31:0] inst_sram_rdata,
-output reg        inst_stall,
+(*mark_debug = "true"*) output reg [31:0] inst_sram_rdata,
+(*mark_debug = "true"*) output reg        inst_stall,
 //instr sram_like
-output reg        inst_req,
+(*mark_debug = "true"*) output reg        inst_req,
 output            inst_wr,
 output     [1:0]  inst_size,
-output reg [31:0] inst_addr,
+(*mark_debug = "true"*) output reg [31:0] inst_addr,
 output     [31:0] inst_wdata,
-input      [31:0] inst_rdata,
-input             inst_addr_ok,
-input             inst_data_ok
+(*mark_debug = "true"*) input      [31:0] inst_rdata,
+(*mark_debug = "true"*) input             inst_addr_ok,
+(*mark_debug = "true"*) input             inst_data_ok
 
 );
 
@@ -38,6 +38,7 @@ begin
 	else state_current <= state_idle;
 end
 
+//reg [31:0] rd_buf;
 
 always @ (*)
 begin
@@ -46,53 +47,72 @@ begin
 			inst_req = 1'b0;
 			inst_stall = 1'b1;
 			inst_addr = 32'h0;
-			inst_stall = 1'b1;
 			inst_sram_rdata = 32'h0;
 			state_next = state_req;
 		end
 	   	state_req: begin
-			inst_req = 1'b1;
+        	inst_req = 1'b1;
 			inst_stall = 1'b1;
 			inst_addr = inst_sram_addr;
+			inst_sram_rdata = 32'h0;
 			state_next = state_wait_addr;
 		end
 		state_wait_addr: begin
 		    if(flush == 1'b1)
 		    begin
-		        inst_req = 1'b0;
-		        state_next = state_wait_addr_twice;
-			end
-			else if(inst_addr_ok) 
-			    state_next = state_wait_data;
+                inst_req = 1'b0;
+                inst_stall = 1'b1;
+                inst_addr = inst_sram_addr;
+                inst_sram_rdata = 32'h0;
+                state_next = state_wait_addr_twice;
+			end else begin
+			if(inst_addr_ok) begin
+                inst_req = 1'b1;
+                inst_stall = 1'b1;
+                inst_addr = inst_sram_addr;
+                inst_sram_rdata = 32'h0;
+                state_next = state_wait_data;
+            end else begin
+                inst_req = 1'b1;
+                inst_stall = 1'b1;
+                inst_addr = inst_sram_addr;
+                inst_sram_rdata = 32'h0;
+                state_next = state_wait_addr;
+            end
+            end
 		end
 		
 		state_wait_addr_twice: begin
 		    inst_addr = inst_sram_addr;
 		    inst_req = 1'b1;
+		    inst_stall = 1'b1;
+		    inst_sram_rdata = 32'h0;
 		    if(inst_addr_ok)
 		        state_next = state_wait_data;
+		    else
+		        state_next = state_wait_addr_twice;
 		end
 		
-		state_wait_data_twice: begin
-		    if(inst_data_ok)
-		        state_next = state_wait_data;
-		end
-
 		state_wait_data: begin
+		    inst_req = 1'b1;
+		    inst_addr = inst_sram_addr;
 		    if(inst_data_ok) begin
-		        inst_sram_rdata = inst_rdata;
 		        inst_stall = 1'b0;
-		        state_next =  state_req;
+		        inst_sram_rdata = inst_rdata;
+		        state_next = state_req;
+		    end else begin
+		        inst_stall = 1'b1;
+		        inst_sram_rdata = 32'h0;
+		        state_next = state_wait_data;
 		    end
 		end
-		state_done: begin
-			inst_stall = 1'b0;
-			inst_req = 1'b0;
-			inst_sram_rdata = inst_rdata;
-			state_next = state_req;
-		end
 		default: begin
-			state_next = state_idle;
+			inst_req = 1'b0;
+			inst_stall = 1'b1;
+			inst_addr = 32'h0;
+			inst_stall = 1'b1;
+			inst_sram_rdata = 32'h0;
+			state_next = state_req;
 		end		
 	endcase
 	

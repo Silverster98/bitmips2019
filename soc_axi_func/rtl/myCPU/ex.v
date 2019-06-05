@@ -135,6 +135,7 @@ endfunction
             cp0_write_data_o <= `ZEROWORD32;
             mem_to_reg_o <= 1'b0;
             exe_stall_request_o <= 1'b0;
+            is_overflow <= 1'b0;
         end else begin
             pc_o <= pc_i;
             aluop_o <= aluop_i;

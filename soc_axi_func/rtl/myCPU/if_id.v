@@ -3,8 +3,8 @@
 module if_id(
     input wire                   rst,
     input wire                   clk,
-    input wire [`INST_ADDR_BUS]  if_pc,
-    input wire [`INST_BUS]       if_instr,
+    (*mark_debug = "true"*) input wire [`INST_ADDR_BUS]  if_pc,
+    (*mark_debug = "true"*) input wire [`INST_BUS]       if_instr,
     input wire                   exception,
     input wire [3:0]             stall,
 	input wire [`EXCEP_TYPE_BUS] if_exception_type,

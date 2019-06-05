@@ -32,7 +32,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------------*/
 module mycpu_top
 (
-    input  [4 :0] int          , 
+    input  [5 :0] int          , 
     input         aclk         ,
     input         aresetn      ,
     output [3 :0] arid         ,
@@ -76,10 +76,10 @@ module mycpu_top
     input         bvalid       ,
     output        bready       ,
     
-    output [31:0] debug_wb_pc       , 
-    output [3:0]  debug_wb_rf_wen   ,
-    output [4:0]  debug_wb_rf_wnum  ,
-    output [31:0] debug_wb_rf_wdata 
+   (*mark_debug = "true"*) output [31:0] debug_wb_pc       , 
+   (*mark_debug = "true"*) output [3:0]  debug_wb_rf_wen   ,
+   (*mark_debug = "true"*) output [4:0]  debug_wb_rf_wnum  ,
+   (*mark_debug = "true"*) output [31:0] debug_wb_rf_wdata 
 );
 
 wire        inst_req;

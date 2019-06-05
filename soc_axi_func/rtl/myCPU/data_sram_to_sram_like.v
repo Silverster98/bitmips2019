@@ -25,106 +25,122 @@ input             data_addr_ok,
 input             data_data_ok 
 );
 
-reg [2:0] state_current;
-reg [2:0] state_next;
-reg [31:0] data_addr_convert;
+reg [2:0] state;
+reg [2:0] addr_off;
 parameter [2:0] state_idle = 3'b000;
-parameter [2:0] state_req = 3'b001;
-parameter [2:0] state_wait_addr = 3'b010;
-parameter [2:0] state_wait_data = 3'b011;
-parameter [2:0] state_done = 3'b100;
+parameter [2:0] state_wait_addr = 3'b001;
+parameter [2:0] state_wait_data = 3'b010;
+parameter [2:0] state_done = 3'b011;
 
-always @(posedge clk) begin
-   if(rst == `RST_DISABLE) state_current <= state_next;
-   else state_current <= state_idle;
+always @(*) begin
+      case (wen_sram_i)
+		  4'b1000,
+		  4'b0100,
+		  4'b0010,
+		  4'b0001: begin 
+				data_size <= 2'b00;
+		  end
+		  4'b0011,
+		  4'b1100: begin 
+				data_size <= 2'b01;
+		  end
+		  default: begin 
+				data_size <= 2'b10;
+		  end
+      endcase
 end
 
 always @(*) begin
-    case(state_current)
+    case (wen_sram_i)
+        4'b1000: addr_off <= 3;
+        4'b0100, 4'b1100: addr_off <= 2;
+        4'b0010: addr_off <= 1;
+        default: addr_off <= 0;
+    endcase 
+end
+
+
+
+always @(*) begin
+    if(rst == `RST_ENABLE) begin
+        data_stall = 1'b0;
+        data_sram_o = 32'b0;
+    end else begin
+    case (state)
         state_idle: begin
-            data_req = 1'b0;
-            data_wr = 1'b0;
-            data_size = 2'b00;
-            data_addr = 32'h0;
-            data_wdata = 32'h0;
-            data_sram_o = 32'h0;
-            data_stall = 1'b0;
-            state_next = state_req;
-        end
-        state_req: begin
-            if(ren_sram_i == 1'b1) begin
+            if(!flush && (ren_sram_i == 1'b1 || wen_sram_i != 4'b0000)) begin
                 data_stall = 1'b1;
-                data_size = 2'b10;
-                data_req = 1'b1;
-                state_next = state_wait_addr;
-                data_addr = (addr_sram_i[31:30] == 2'b11) ? addr_sram_i : {3'b000, addr_sram_i[28:0]};;
-            end else if(wen_sram_i != 4'b0000) begin
-                if(wen_sram_i == 4'b1111) begin
-                    data_stall = 1'b1;
-                    data_size = 2'b10;
-                    data_req = 1'b1;
-                    data_wr = 1'b1;
-                    state_next = state_wait_addr;
-                    data_wdata = data_sram_i;
-                    data_addr = (addr_sram_i[31:30] == 2'b11) ? addr_sram_i : {3'b000, addr_sram_i[28:0]};
-                end
-                else if(wen_sram_i == 4'b1100 || wen_sram_i == 4'b0011 ) begin
-                    data_stall = 1'b1;
-                    data_size = 2'b01;
-                    data_req = 1'b1;
-                    data_wr = 1'b1;
-                    state_next = state_wait_addr;
-                    /*data_wdata = (wen_sram_i == 4'b1100) ? data_sram_i>>8 : data_sram_i;
-                    */
-                    data_wdata = data_sram_i;
-                    if(wen_sram_i == 4'b1100) data_addr_convert = addr_sram_i + 2;
-                    else data_addr_convert = addr_sram_i;
-                    data_addr = (data_addr_convert[31:30] == 2'b11) ? data_addr_convert : {3'b000, data_addr_convert[28:0]};
-                end
-                else if(wen_sram_i == 4'b0001 ||wen_sram_i == 4'b0010 ||wen_sram_i == 4'b0100 ||
-                wen_sram_i == 4'b1000 ) begin
-                    data_stall = 1'b1;
-                    data_size = 2'b00;
-                    data_req = 1'b1;
-                    data_wr = 1'b1;
-                    state_next = state_wait_addr;
-                    data_wdata = data_sram_i;
-                    /*data_wdata = wen_sram_i == 4'b1000 ? (data_sram_i >> 12) : 
-                                 wen_sram_i == 4'b0100 ? (data_sram_i >> 8) :   
-                                 wen_sram_i == 4'b0010 ? (data_sram_i >> 4) : data_sram_i;
-                    */
-                    if(wen_sram_i == 4'b1000) data_addr_convert = addr_sram_i + 3;
-                    else if(wen_sram_i == 4'b0100) data_addr_convert = addr_sram_i + 2;
-                    else if(wen_sram_i == 4'b0010) data_addr_convert = addr_sram_i + 1;
-                    else data_addr_convert = addr_sram_i;
-                    data_addr = (data_addr_convert[31:30] == 2'b11) ? data_addr_convert : {3'b000, data_addr_convert[28:0]};
-                end
-            end 
+                data_sram_o = 32'b0;
+            end else begin
+                data_stall = 1'b0;
+                data_sram_o = 32'b0;
+            end
         end
         state_wait_addr: begin
-            if (flush) begin
-                data_req = 1'b0;
-                data_wr = 1'b0;
+            if(flush) begin
                 data_stall = 1'b0;
-                state_next = state_req;
+                data_sram_o = 32'b0;
+            end else begin
+                data_stall = 1'b1;
+                data_sram_o = 32'b0;
             end
-            else if(data_addr_ok) state_next = state_wait_data;
         end
         state_wait_data: begin
             if(data_data_ok) begin
-                data_sram_o = data_rdata;
-                state_next = state_done;
                 data_stall = 1'b0;
+                data_sram_o = data_rdata;
+            end else begin
+                data_stall = 1'b1;
+                data_sram_o = 32'h0;
             end
         end
-        state_done: begin
-            data_req = 1'b0;
-            data_wr = 1'b0;
-            state_next = state_req;
-        end
         default: begin
-            state_next = state_idle;
+            data_stall = 1'b0;
+            data_sram_o = 32'b0;
         end
     endcase
+    end
+end
+
+
+always @(posedge clk) begin
+    if(rst == `RST_ENABLE) begin
+        data_req <= 1'b0;
+        data_wr <= 1'b0;
+        data_wdata <= 32'b0;
+        state <= state_idle;
+        data_addr <= 32'h0;
+    end else begin
+    case (state)
+        state_idle:
+            if(!flush && (ren_sram_i == 1'b1 || wen_sram_i != 4'b0000)) begin
+                data_req <= 1'b1;
+                if(wen_sram_i != 4'b0000) data_wr <= 1'b1;
+                else data_wr <= 1'b0;
+                if(addr_sram_i[31:28] >= 4'b1000 && addr_sram_i[31:28] <= 4'b1100)
+                    data_addr <= {3'b000,addr_sram_i[28:0]} + addr_off ;
+                else
+                    data_addr <= addr_sram_i + addr_off;
+                data_wdata <= data_sram_i;
+                state <= state_wait_addr;
+            end
+        state_wait_addr:
+            if(flush) begin
+                data_req <= 1'b0;
+                data_wr <= 1'b0;
+                state <= state_idle;
+            end
+            else if(data_addr_ok) begin
+                data_req <= 1'b0;
+                data_wr <= 1'b0;
+                state <= state_wait_data;
+            end
+        state_wait_data:
+            if(data_data_ok) state <= state_idle;
+            else state <= state_wait_data;
+        //state_done:
+        //    state <= state_idle;
+    endcase
+    end
 end
 endmodule
