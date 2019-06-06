@@ -187,7 +187,7 @@ begin
 				end
 				`ID_NOR: begin
 					regfile_write_enable_o <= 1'b1;
-					aluop_o <= `ALUOP_AND;
+					aluop_o <= `ALUOP_NOR;
 					rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 					instr_valid <= 1'b1;
 				end
@@ -319,6 +319,7 @@ begin
 						rs_read_enable <= 1'b1;
 						pc_return_addr_o <= pc_add8;
 						branch_addr_o <= rs_data_o;
+						branch_enable_o <= 1'b1;
 						instr_valid <= 1'b1;
 						next_in_delayslot_o <= 1'b1;
 						regfile_write_enable_o <= 1'b1;
@@ -343,20 +344,20 @@ begin
 				rs_read_enable <= 1'b1;
 				instr_valid <= 1'b1;
 				aluop_o <= `ALUOP_BGEZ;
+				next_in_delayslot_o <= 1'b1;
 				if(rs_data_o[31] == 1'b0) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
-					next_in_delayslot_o <= 1'b1;
 				end
 			end
 			`ID_BLTZ: begin
 				rs_read_enable <= 1'b1;
 				instr_valid <= 1'b1;
 				aluop_o <= `ALUOP_BLTZ;
+				next_in_delayslot_o <= 1'b1;
 				if(rs_data_o[31] == 1'b1) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
-					next_in_delayslot_o <= 1'b1;
 				end
 			end
 			`ID_BGEZAL: begin
@@ -364,23 +365,23 @@ begin
 				instr_valid <= 1'b1;
 				aluop_o <= `ALUOP_BGEZAL;
 				regfile_write_enable_o <= 1'b1;
+				pc_return_addr_o <= pc_add8;
+				next_in_delayslot_o <= 1'b1;
 				if(rs_data_o[31] == 1'b0) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
-					next_in_delayslot_o <= 1'b1;
-					pc_return_addr_o <= pc_add8;
 				end
 			end
 			`ID_BLTZAL: begin
 			    rs_read_enable <= 1'b1;
 				instr_valid <= 1'b1;
-				aluop_o <= `ALUOP_BGEZAL;
+				aluop_o <= `ALUOP_BLTZAL;
 				regfile_write_enable_o <= 1'b1;
+				pc_return_addr_o <= pc_add8;
+				next_in_delayslot_o <= 1'b1;
 				if(rs_data_o[31] == 1'b1) begin
 					branch_addr_o <=  pc_add4 + signed_extend_sll2;
 					branch_enable_o <= 1'b1;
-					next_in_delayslot_o <= 1'b1;
-					pc_return_addr_o <= pc_add8;
 				end
 			end  
 			default:;
@@ -462,40 +463,40 @@ begin
 			aluop_o <= `ALUOP_BEQ;
 			rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
+			next_in_delayslot_o <= 1'b1;
 			if(rs_data_o == rt_data_o) begin
 				branch_addr_o <= pc_add4 + signed_extend_sll2;
 				branch_enable_o <= 1'b1;
-				next_in_delayslot_o <= 1'b1;
 			end			
 		end
 		`ID_BNE: begin
 			aluop_o <= `ALUOP_BNE;
 			rs_read_enable <= 1'b1; rt_read_enable <= 1'b1;
 			instr_valid <= 1'b1;
+			next_in_delayslot_o <= 1'b1;
 			if(rs_data_o != rt_data_o) begin
 				branch_addr_o <= pc_add4 + signed_extend_sll2;
 				branch_enable_o <= 1'b1;
-				next_in_delayslot_o <= 1'b1;
 			end			
 		end
 		`ID_BGTZ:begin
 		    aluop_o <= `ALUOP_BGTZ;
 		    rs_read_enable <= 1'b1;
 		    instr_valid <= 1'b1;
+		    next_in_delayslot_o <= 1'b1;
 		    if(rs_data_o[31] == 1'b0 && rs_data_o != 32'h0) begin
 		        branch_addr_o <= pc_add4 + signed_extend_sll2;
 		        branch_enable_o <= 1'b1;
-				next_in_delayslot_o <= 1'b1;
 		    end
 		end
 		`ID_BLEZ:begin
 		    aluop_o <= `ALUOP_BLEZ;
 		    rs_read_enable <= 1'b1;
 		    instr_valid <= 1'b1;
+		    next_in_delayslot_o <= 1'b1;
 		    if(rs_data_o[31] == 1'b1 || rs_data_o == 32'h0) begin
 		        branch_addr_o <= pc_add4 + signed_extend_sll2;
 		        branch_enable_o <= 1'b1;
-				next_in_delayslot_o <= 1'b1;
 		    end
 		end
 		`ID_LB: begin

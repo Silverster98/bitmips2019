@@ -4,7 +4,7 @@ module ex_mem(
     input wire rst,
     input wire clk,
     input wire exception,
-    input wire stall,
+    input wire[3:0] stall,
     
     input wire[`INST_ADDR_BUS] exe_pc,
     input wire[`ALUOP_BUS] exe_aluop,
@@ -16,7 +16,6 @@ module ex_mem(
     input wire exe_lo_write_enable,
     input wire exe_cp0_write_enable,
     input wire[`GPR_ADDR_BUS] exe_regfile_write_addr,
-//    input wire[] exe_ram_write_addr,
     input wire[`CP0_ADDR_BUS] exe_cp0_write_addr,
     input wire[`GPR_BUS] exe_alu_data,
     input wire[`GPR_BUS] exe_ram_write_data,
@@ -24,7 +23,6 @@ module ex_mem(
     input wire[`GPR_BUS] exe_lo_write_data,
     input wire[`GPR_BUS] exe_cp0_write_data,
     input wire exe_mem_to_reg,
-//    input wire[] exe_ram_read_addr,
     
     output reg[`INST_ADDR_BUS] mem_pc,
     output reg[`ALUOP_BUS] mem_aluop,
@@ -47,8 +45,14 @@ module ex_mem(
     output reg[`RAM_ADDR_BUS] mem_ram_read_addr
     );
     
+    wire inst_stall, id_stall, exe_stall, data_stall;
+    assign inst_stall = stall[0];
+    assign id_stall = stall[1];
+    assign exe_stall = stall[2];
+    assign data_stall = stall[3];
+    
     always @ (posedge clk) begin
-        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON) begin
+        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON || exe_stall == 1'b1) begin
             mem_pc <= `ZEROWORD32;
             mem_aluop <= 8'h00;
             mem_now_in_delayslot <= 1'b0;
@@ -69,7 +73,7 @@ module ex_mem(
             mem_mem_to_reg <= 1'b0;
             mem_ram_read_addr <= `ZEROWORD32;
         end else begin
-            if (stall == `NOSTOP) begin
+            if (data_stall == 1'b0) begin
                 mem_pc <= exe_pc;
                 mem_aluop <= exe_aluop;
                 mem_now_in_delayslot <= exe_now_in_delayslot;

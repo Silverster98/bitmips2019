@@ -1,3 +1,4 @@
+`include "defines.v"
 module div_wrapper(
 		input             clock,
 		input             reset,
@@ -49,7 +50,7 @@ assign done = div_done;
 assign result = {dremain, dquotient};
 
 always @(posedge clock) begin
-    if (reset) begin
+    if (reset == `RST_ENABLE) begin
         div_stage <= 'b0;
     end
     else if(!start) begin

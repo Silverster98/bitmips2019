@@ -26,8 +26,6 @@ module mem(
    
     output reg[`INST_ADDR_BUS] store_pc_o,
     output reg[`RAM_ADDR_BUS] access_mem_addr_o,
-//    output reg[`INST_ADDR_BUS] exception_pc_o,
-//    output reg exception_o,
     output reg now_in_delayslot_o,
     output reg[`EXCEP_TYPE_BUS] exception_type_o,
     
@@ -40,9 +38,6 @@ module mem(
     output reg cp0_write_enable_o,
     output reg[`CP0_ADDR_BUS] cp0_write_addr_o,
     output reg[`CP0_BUS] cp0_write_data_o,
-//    output reg mem_to_reg_o,
-//    output reg[`GPR_BUS] alu_data_o,
-//    output reg[`GPR_BUS] ram_data_o,
     output reg[`GPR_BUS] regfile_write_data_o,
     
     output reg[3:0] ram_write_select_o, // byte select, width = 4bit for 4 byte,bit 1 is write, bit 0 is no write
@@ -50,9 +45,7 @@ module mem(
     output reg[`RAM_ADDR_BUS] ram_write_addr_o,
     output reg[`GPR_BUS] ram_write_data_o,
     output reg[`RAM_ADDR_BUS] ram_read_addr_o,
-    
-    input wire pre_is_load,
-    output reg now_is_load
+    output reg ram_read_enable_o
     );
     
     reg is_read_bad_addr, is_write_bad_addr;
@@ -60,7 +53,14 @@ module mem(
     
     always @ (*) begin
         if (rst == `RST_ENABLE) begin
-            regfile_write_enable_o <= 1'b0;
+            regfile_write_enable_o <= 32'h0;
+        end else begin
+            regfile_write_enable_o <= (exception_type_i != 32'h0) ? 1'b0 : regfile_write_enable_i;
+        end
+    end
+    
+    always @ (*) begin
+        if (rst == `RST_ENABLE) begin
             regfile_write_addr_o <= `ZEROWORD5;
             hi_write_enable_o <= 1'b0;
             hi_write_data_o <= `ZEROWORD32;
@@ -69,11 +69,8 @@ module mem(
             cp0_write_enable_o <= 1'b0;
             cp0_write_addr_o <= `ZEROWORD5;
             cp0_write_data_o <= `ZEROWORD32;
-//            mem_to_reg_o <= 1'b0;
-//            alu_data_o <= `ZEROWORD32;
             regfile_write_data_o <= `ZEROWORD32;
         end else begin
-            regfile_write_enable_o <= regfile_write_enable_i;
             regfile_write_addr_o <= regfile_write_addr_i;
             hi_write_enable_o <= hi_write_enable_i;
             hi_write_data_o <= hi_write_data_i;
@@ -82,8 +79,6 @@ module mem(
             cp0_write_enable_o <= cp0_write_enable_i;
             cp0_write_addr_o <= cp0_write_addr_i;
             cp0_write_data_o <= cp0_write_data_i;
-//            mem_to_reg_o <= mem_to_reg_i;
-//            alu_data_o <= alu_data_i;
             regfile_write_data_o <= (mem_to_reg_i == 1'b1) ? ram_data_o : alu_data_i;
         end
     end
@@ -93,13 +88,14 @@ module mem(
             ram_read_addr_o <= `ZEROWORD32;
             ram_data_o <= `ZEROWORD32;
             is_read_bad_addr <= 1'b0;
+            ram_read_enable_o <= 1'b0;
         end else begin
             ram_read_addr_o <= {ram_read_addr_i[31:2], 2'b00};
             
             case (aluop_i)
                 `ALUOP_LB : begin
                     is_read_bad_addr <= 1'b0;
-                
+                    ram_read_enable_o <= 1'b1;
                     case (ram_read_addr_i[1:0])
                         2'b00 : ram_data_o <= {{24{ram_read_data_i[7]}}, ram_read_data_i[7:0]};
                         2'b01 : ram_data_o <= {{24{ram_read_data_i[15]}}, ram_read_data_i[15:8]};
@@ -109,7 +105,7 @@ module mem(
                 end
                 `ALUOP_LBU : begin
                     is_read_bad_addr <= 1'b0;
-                
+                    ram_read_enable_o <= 1'b1;
                     case (ram_read_addr_i[1:0])
                         2'b00 : ram_data_o <= {{24'h000000}, ram_read_data_i[7:0]};
                         2'b01 : ram_data_o <= {{24'h000000}, ram_read_data_i[15:8]};
@@ -119,7 +115,7 @@ module mem(
                 end
                 `ALUOP_LH : begin
                     is_read_bad_addr <= (ram_read_addr_i[0] == 1'b0) ? 1'b0 : 1'b1;
-                
+                    ram_read_enable_o <= 1'b1;
                     case (ram_read_addr_i[1:0])
                         2'b00 : ram_data_o <= {{16{ram_read_data_i[15]}}, ram_read_data_i[15:0]};
                         2'b10 : ram_data_o <= {{16{ram_read_data_i[31]}}, ram_read_data_i[31:16]};
@@ -127,7 +123,7 @@ module mem(
                 end
                 `ALUOP_LHU : begin
                     is_read_bad_addr <= (ram_read_addr_i[0] == 1'b0) ? 1'b0 : 1'b1;
-                
+                    ram_read_enable_o <= 1'b1;
                     case (ram_read_addr_i[1:0])
                         2'b00 : ram_data_o <= {{16'h0000}, ram_read_data_i[15:0]};
                         2'b10 : ram_data_o <= {{16'h0000}, ram_read_data_i[31:16]};
@@ -135,12 +131,13 @@ module mem(
                 end
                 `ALUOP_LW : begin
                     is_read_bad_addr <= (ram_read_addr_i[1:0] == 2'b00) ? 1'b0 : 1'b1;
-                
+                    ram_read_enable_o <= 1'b1;
                     ram_data_o <= ram_read_data_i;
                 end
                 default : begin
                     is_read_bad_addr <= 1'b0;
                     ram_data_o <= `ZEROWORD32;
+                    ram_read_enable_o <= 1'b0;
                 end
             endcase
         end
@@ -155,7 +152,7 @@ module mem(
             is_write_bad_addr <= 1'b0;
         end else begin
             ram_write_addr_o <= {ram_write_addr_i[31:2], 2'b00};
-            ram_write_enable_o <= ram_write_enable_i;
+            ram_write_enable_o <= (is_write_bad_addr == 1'b1) ? 1'b0 : ram_write_enable_i;
             
             case (aluop_i)
                 `ALUOP_SB : begin
@@ -218,19 +215,6 @@ module mem(
                     exception_type_o <= exception_type_i;
                 end
             endcase
-        end
-    end
-    
-    always @ (*) begin
-        if (rst == `RST_ENABLE) begin
-            now_is_load <= 1'b0;
-        end else begin
-            if (pre_is_load == 1'b1)
-                now_is_load <= 1'b0;
-            else begin
-                if (aluop_i == `ALUOP_LW || aluop_i == `ALUOP_LB || aluop_i == `ALUOP_LBU || aluop_i == `ALUOP_LH || aluop_i == `ALUOP_LHU)
-                    now_is_load <= 1'b1;
-            end
         end
     end
     
