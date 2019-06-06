@@ -101,6 +101,7 @@ module mem(
                         2'b01 : ram_data_o <= {{24{ram_read_data_i[15]}}, ram_read_data_i[15:8]};
                         2'b10 : ram_data_o <= {{24{ram_read_data_i[23]}}, ram_read_data_i[23:16]};
                         2'b11 : ram_data_o <= {{24{ram_read_data_i[31]}}, ram_read_data_i[31:24]};
+                        default : ram_data_o <= `ZEROWORD32;
                     endcase
                 end
                 `ALUOP_LBU : begin
@@ -111,6 +112,7 @@ module mem(
                         2'b01 : ram_data_o <= {{24'h000000}, ram_read_data_i[15:8]};
                         2'b10 : ram_data_o <= {{24'h000000}, ram_read_data_i[23:16]};
                         2'b11 : ram_data_o <= {{24'h000000}, ram_read_data_i[31:24]};
+                        default : ram_data_o <= `ZEROWORD32;
                     endcase
                 end
                 `ALUOP_LH : begin
@@ -119,6 +121,7 @@ module mem(
                     case (ram_read_addr_i[1:0])
                         2'b00 : ram_data_o <= {{16{ram_read_data_i[15]}}, ram_read_data_i[15:0]};
                         2'b10 : ram_data_o <= {{16{ram_read_data_i[31]}}, ram_read_data_i[31:16]};
+                        default : ram_data_o <= `ZEROWORD32;
                     endcase
                 end
                 `ALUOP_LHU : begin
@@ -127,6 +130,7 @@ module mem(
                     case (ram_read_addr_i[1:0])
                         2'b00 : ram_data_o <= {{16'h0000}, ram_read_data_i[15:0]};
                         2'b10 : ram_data_o <= {{16'h0000}, ram_read_data_i[31:16]};
+                        default : ram_data_o <= `ZEROWORD32;
                     endcase
                 end
                 `ALUOP_LW : begin

@@ -148,6 +148,7 @@ endfunction
             cp0_write_enable_o <= cp0_write_enable_i;
             regfile_write_addr_o <= get_regfile_write_addr(aluop_i, regfile_write_addr_i, rs_data_i, rt_data_i,
                                                            sign_extend_imm16_i, alu_output_data, instr_i); // get regfile write addr
+            is_overflow <= get_is_overflow(aluop_i, rs_data_i, rt_data_i, sign_extend_imm16_i, alu_output_data);
             cp0_write_addr_o <= instr_i[15:11];  // MTC0:cp0 write addr is rd
             alu_data_o <= alu_output_data; // alu data output
             
@@ -316,32 +317,54 @@ function [31:0] get_alu_data(input [7:0] aluop, input [31:0] instr, input [31:0]
     endcase
 endfunction
 
+function get_is_overflow(input [7:0] aluop, input [31:0] rs_value, input [31:0] rt_value, 
+                         input [31:0] sign_extend_imm16, input [31:0] alu_output_data);
+    begin
+        get_is_overflow = 0;
+        
+        if (aluop == `ALUOP_ADD) begin
+            if ((rs_value[31] == 0 && rt_value[31] == 0 && alu_output_data[31] == 1) 
+	    		|| (rs_value[31] == 1 && rt_value[31] == 1 && alu_output_data[31] == 0)) begin
+	            get_is_overflow = 1;
+	        end
+        end
+        else if (aluop == `ALUOP_ADDI) begin
+            if ((rs_value[31] == 0 && sign_extend_imm16[31] == 0 && alu_output_data[31] == 1) 
+	    		|| (rs_value[31] == 1 && sign_extend_imm16[31] == 1 && alu_output_data[31] == 0)) begin
+	            get_is_overflow = 1;
+	        end
+        end
+        else if (aluop == `ALUOP_SUB) begin
+            if ((rs_value[31] == 0 && rt_value[31] == 1 && alu_output_data[31] == 1)
+                || rs_value[31] == 1 && rt_value[31] == 0 && alu_output_data[31] == 0) begin
+                get_is_overflow = 1;
+            end
+        end else get_is_overflow = 0;
+    end
+endfunction
+
 function [4:0] get_regfile_write_addr(input [7:0] aluop, input [`GPR_ADDR_BUS] regfile_write_addr, input [31:0] rs_value,
                                       input [31:0] rt_value, input [31:0] sign_extend_imm16, input [31:0] alu_output_data,
                                       input [31:0] instr);
     begin
         get_regfile_write_addr = regfile_write_addr;
-        is_overflow = 0;
         
         if (aluop == `ALUOP_ADD) begin
             if ((rs_value[31] == 0 && rt_value[31] == 0 && alu_output_data[31] == 1) 
 				|| (rs_value[31] == 1 && rt_value[31] == 1 && alu_output_data[31] == 0)) begin
 	            get_regfile_write_addr = 0;
-	            is_overflow = 1;
 		    end
         end
         else if (aluop == `ALUOP_ADDI) begin
             if ((rs_value[31] == 0 && sign_extend_imm16[31] == 0 && alu_output_data[31] == 1) 
 				|| (rs_value[31] == 1 && sign_extend_imm16[31] == 1 && alu_output_data[31] == 0)) begin
 	            get_regfile_write_addr = 0;
-	            is_overflow = 1;
 		    end
         end
         else if (aluop == `ALUOP_SUB) begin
             if ((rs_value[31] == 0 && rt_value[31] == 1 && alu_output_data[31] == 1)
                 || rs_value[31] == 1 && rt_value[31] == 0 && alu_output_data[31] == 0) begin
                 get_regfile_write_addr = 0;
-                is_overflow = 1;
             end
         end
         else if (aluop == `ALUOP_JAL || aluop == `ALUOP_BLTZAL || aluop == `ALUOP_BGEZAL) begin
@@ -349,7 +372,7 @@ function [4:0] get_regfile_write_addr(input [7:0] aluop, input [`GPR_ADDR_BUS] r
         end
         else if (aluop == `ALUOP_MFC0) begin
             get_regfile_write_addr = instr[20:16];
-        end
+        end else get_regfile_write_addr = regfile_write_addr;
     end
 endfunction
 
