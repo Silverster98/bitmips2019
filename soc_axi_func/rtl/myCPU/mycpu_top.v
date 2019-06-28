@@ -35,6 +35,7 @@ module mycpu_top
     input  [5 :0] int          , 
     input         aclk         ,
     input         aresetn      ,
+    //ar
     output [3 :0] arid         ,
     output [31:0] araddr       ,
     output [7 :0] arlen        ,
@@ -82,108 +83,9 @@ module mycpu_top
    (*mark_debug = "true"*) output [31:0] debug_wb_rf_wdata 
 );
 
-wire        inst_req;
-wire        inst_wr;
-wire [1:0]  inst_size;
-wire [31:0] inst_addr;
-wire [31:0] inst_wdata;
-wire [31:0] inst_rdata;
-wire        inst_addr_ok;
-wire        inst_data_ok;
-wire        data_req;
-wire        data_wr;
-wire [1:0]  data_size;
-wire [31:0] data_addr;
-wire [31:0] data_wdata;
-wire [31:0] data_rdata;
-wire        data_addr_ok;
-wire        data_data_ok;
-
-cpu_axi_interface cpu_axi_interface_1
-(
-    .clk            (aclk      ),
-    .resetn         (aresetn   ), 
-
-    
-    .inst_req       (inst_req    ),
-    .inst_wr        (inst_wr     ),
-    .inst_size      (inst_size   ),
-    .inst_addr      (inst_addr   ),
-    .inst_wdata     (inst_wdata  ),
-    .inst_rdata     (inst_rdata  ),
-    .inst_addr_ok   (inst_addr_ok),
-    .inst_data_ok   (inst_data_ok),
-    
-
-    .data_req       (data_req    ),
-    .data_wr        (data_wr     ),
-    .data_size      (data_size   ),
-    .data_addr      (data_addr   ),
-    .data_wdata     (data_wdata  ),
-    .data_rdata     (data_rdata  ),
-    .data_addr_ok   (data_addr_ok),
-    .data_data_ok   (data_data_ok),
-
-    .arid           (arid        ),
-    .araddr         (araddr      ),
-    .arlen          (arlen       ),
-    .arsize         (arsize      ),
-    .arburst        (arburst     ),
-    .arlock         (arlock      ),
-    .arcache        (arcache     ),
-    .arprot         (arprot      ),
-    .arvalid        (arvalid     ),
-    .arready        (arready     ),
-                                
-    .rid            (rid         ),
-    .rdata          (rdata       ),
-    .rresp          (rresp       ),
-    .rlast          (rlast       ),
-    .rvalid         (rvalid      ),
-    .rready         (rready      ),
-                                
-    .awid           (awid        ),
-    .awaddr         (awaddr      ),
-    .awlen          (awlen       ),
-    .awsize         (awsize      ),
-    .awburst        (awburst     ),
-    .awlock         (awlock      ),
-    .awcache        (awcache     ),
-    .awprot         (awprot      ),
-    .awvalid        (awvalid     ),
-    .awready        (awready     ),
-                                
-    .wid            (wid         ),
-    .wdata          (wdata       ),
-    .wstrb          (wstrb       ),
-    .wlast          (wlast       ),
-    .wvalid         (wvalid      ),
-    .wready         (wready      ),
-                                
-    .bid            (bid         ),
-    .bresp          (bresp       ),
-    .bvalid         (bvalid      ),
-    .bready         (bready      )
-);
-
-
-/*
-assign inst_sram_en = (resetn == `RST_ENABLE) ? 1'b0 : 1'b1;
-assign inst_sram_wen = 4'b0000;
-
-assign data_sram_en = (resetn == `RST_ENABLE) ? 1'b0 : 1'b1;
-
-wire time_int_out;
-wire[31:0] _data_ram_addr;
-
-reg[31:0] inst_addr;
-reg[31:0] data_addr;
-reg inst_stall, data_stall;
-wire data_sram_read_enable;
-
-assign data_sram_addr = (_data_ram_addr[31:30] == 2'b11) ? _data_ram_addr : {3'b000, _data_ram_addr[28:0]}; // mmu
-*/
 wire        time_int_out;
+wire        flush;
+
 wire [31:0] inst_sram_addr;
 wire [31:0] inst_sram_rdata;
 wire        inst_stall;
@@ -194,7 +96,6 @@ wire [31:0] data_sram_addr;
 wire [31:0] data_sram_wdata;
 wire [31:0] data_sram_rdata;
 wire        data_stall;
-wire        flush;
 
 mips_top mips_core(
 .clk(aclk),
@@ -202,6 +103,7 @@ mips_top mips_core(
 .flush(flush),
 .interrupt({time_int_out || int[5],int[4:0]}),
 .time_int_out(time_int_out),
+
 .inst_sram_addr(inst_sram_addr),
 .inst_sram_rdata(inst_sram_rdata),
 
@@ -220,77 +122,71 @@ mips_top mips_core(
 .data_stall(data_stall)
 );
 
-inst_sram_to_sram_like inst_sram_convert
-(
+
+bit_axi_interface axi_interface(
+.inst_or_data(), // for cache, 1 is data, 0 is inst
+
 .clk(aclk),
 .rst(aresetn),
 .flush(flush),
-// sram
+
 .inst_sram_addr(inst_sram_addr),
 .inst_sram_rdata(inst_sram_rdata),
 .inst_stall(inst_stall),
-//instr sram_like
-.inst_req(inst_req),
-.inst_wr(inst_wr),
-.inst_size(inst_size),
-.inst_addr(inst_addr),
-.inst_wdata(inst_wdata),
-.inst_rdata(inst_rdata),
-.inst_addr_ok(inst_addr_ok),
-.inst_data_ok(inst_data_ok)
-);
 
-data_sram_to_sram_like data_sram_convert
-(
-.clk(aclk),
-.rst(aresetn),
-.flush(flush),
-// sram
-.data_sram_i(data_sram_wdata),
-.addr_sram_i(data_sram_addr),
-.wen_sram_i(data_sram_wen),
-.ren_sram_i(data_sram_ren),
-.data_sram_o(data_sram_rdata),           
+.data_sram_addr(data_sram_addr),
+.data_sram_ren(data_sram_ren),
+.data_sram_rdata(data_sram_rdata),
+.data_sram_wen(data_sram_wen),
+.data_sram_wdata(data_sram_wdata),
 .data_stall(data_stall),
-//datar sram_like
-.data_req(data_req),
-.data_wr(data_wr),
-.data_size(data_size),
-.data_addr(data_addr),
-.data_wdata(data_wdata),
-.data_rdata(data_rdata),
-.data_addr_ok(data_addr_ok),
-.data_data_ok(data_data_ok)
+
+//axi
+//ar
+.arid(arid),
+.araddr(araddr),
+.arlen(arlen),
+.arsize(arsize),
+.arburst(arburst),
+.arlock(arlock),
+.arcache(arcache),
+.arprot(arprot),
+.arvalid(arvalid),
+.arready(arready),
+
+//r
+.rid(rid),
+.rdata(rdata),
+.rresp(rresp),
+.rlast(rlast),
+.rvalid(rvalid),
+.rready(rready),
+
+//aw
+.awid(awid),
+.awaddr(awaddr),
+.awlen(awlen),
+.awsize(awsize),
+.awburst(awburst),
+.awlock(awlock),
+.awcache(awcache),
+.awprot(awprot),
+.awvalid(awvalid),
+.awready(awready),
+
+//w
+.wid(wid),
+.wdata(wdata),
+.wstrb(wstrb),
+.wlast(wlast),
+.wvalid(wvalid),
+.wready(wready),
+
+//b
+.bid(bid),
+.bresp(bresp),
+.bvalid(bvalid),
+.bready(bready)
 );
 
-/*
-always @ (negedge clk) begin
-    if (resetn == `RST_ENABLE) begin
-        inst_addr <= 32'b0;
-        inst_stall <= 1'b0;
-    end else begin
-        if (inst_addr != inst_sram_addr) begin
-            inst_addr <= inst_sram_addr;
-            inst_stall <= 1'b1;
-        end else begin
-            inst_stall <= 1'b0;
-        end
-    end
-end
-
-always @ (negedge clk) begin
-    if (resetn == `RST_ENABLE) begin
-        data_addr <= 32'b0;
-        data_stall <= 1'b0;
-    end else begin
-        if (data_addr != data_sram_addr && data_sram_read_enable == 1'b1) begin
-            data_addr <= data_sram_addr;
-            data_stall <= 1'b1;
-        end else begin
-            data_stall <= 1'b0;
-            data_addr <= `ZEROWORD32;
-        end
-    end
-end
-*/
 endmodule
