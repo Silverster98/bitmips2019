@@ -26,6 +26,7 @@ module sram_interface(
     output wire[31:0] data_addr,
     output reg[3:0] data_wen,
     output reg data_ren,
+    output reg[31:0] data_wd,
     input wire data_valid,
     input wire[31:0] data_rd
 );
@@ -55,26 +56,30 @@ always @ (*) begin
             next_state = state_req;
             inst_ren = 1'b0;
             data_ren = 1'b0;
-            data_wen = 1'b0;
+            data_wen = 4'b0;
             inst_stall = 1'b1;
             data_stall = 1'b1;
+            data_wd = 32'b0;
             handle_data = 2'b00;
         end
         state_req: begin
             if (data_sram_ren == 1'b1 && handle_data == 2'b00) begin
                 inst_ren = 1'b0;
                 data_ren = 1'b1;
-                data_wen = 1'b0;
+                data_wen = 4'b0;
+                data_wd = 32'b0;
                 handle_data = 2'b01;
-            end else if (data_sram_wen == 1'b1 && handle_data == 2'b00) begin
+            end else if (data_sram_wen != 4'b0 && handle_data == 2'b00) begin
                 inst_ren = 1'b0;
                 data_ren = 1'b0;
-                data_wen = 1'b1;
+                data_wen = data_sram_wen;
+                data_wd = data_sram_wdata;
                 handle_data = 2'b01;
             end else begin
                 inst_ren = 1'b1;
                 data_ren = 1'b0;
-                data_wen = 1'b0;
+                data_wen = 4'b0;
+                data_wd = 32'b0;
                 handle_data = 2'b00;
             end
             
