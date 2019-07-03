@@ -6,7 +6,7 @@ module mips_top(
     
     input wire[5:0] interrupt,
     output wire time_int_out,
-    
+    output [2:0] int,
     output  [31:0]  inst_sram_addr,
     input   [31:0]  inst_sram_rdata,
     

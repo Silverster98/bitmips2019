@@ -1,6 +1,7 @@
 // common
 `define SRAM           1'b1
-
+`define test           1'b1
+`define cache          1'b1
 `define RST_ENABLE     1'b0
 `define RST_DISABLE    1'b1
 `define STOP           1'b1           // stop
@@ -186,5 +187,26 @@
 `define ALUOP_MFC0    8'b00110110
 `define ALUOP_MTC0    8'b00110111
 `define ALUOP_BLTZ    8'b00111000
+
+//cache
+`define addr_tag          536:513
+`define valid_bit         0
+`define dirty_bit         537
+`define addr0   	    512:481
+`define addr1   		480:449
+`define addr2   		448:417
+`define addr3   		416:385
+`define addr4   		384:353
+`define addr5   		352:321
+`define addr6   		320:289
+`define addr7   		288:257
+`define addr8   		256:225
+`define addr9   		224:193
+`define addr10  		 192:161
+`define addr11  		 160:129
+`define addr12  		 128:97
+`define addr13  		 96:65
+`define addr14  		 64:33
+`define addr15  		 32:1
 
 
