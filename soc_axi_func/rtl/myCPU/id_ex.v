@@ -86,7 +86,7 @@ module id_ex(
             ex_id_now_in_delayslot <= 1'b0;
             ex_exception_type <= 6'h0;
         end else begin
-            if (exe_stall == 1'b1) begin
+            if (exe_stall == 1'b1 || data_stall == 1'b1) begin // data_stall need to stall
             end else if (inst_stall == 1'b1) begin
                 ex_pc <= `ZEROWORD32;
                 ex_rs_data <= `ZEROWORD32;
@@ -113,7 +113,7 @@ module id_ex(
                 ex_id_now_in_delayslot <= ex_id_now_in_delayslot; // delayslot signal need to stall
                 ex_exception_type <= 6'h0;
             end else begin
-                if (data_stall != 1'b1) begin
+//                if (data_stall != 1'b1) begin
                     ex_pc <= id_pc;
                     ex_rs_data <= id_rs_data;
                     ex_rt_data <= id_rt_data;
@@ -138,7 +138,7 @@ module id_ex(
                     ex_cp0_read_addr <= id_cp0_read_addr;
                     ex_id_now_in_delayslot <= id_next_in_delayslot;
                     ex_exception_type <= id_exception_type;
-                end
+//                end
             end
         end
     end
