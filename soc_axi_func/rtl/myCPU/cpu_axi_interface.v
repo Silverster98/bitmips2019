@@ -42,6 +42,7 @@ module cpu_axi_interface
     input  [1 :0] inst_size    ,
     input  [31:0] inst_addr    ,
     input  [31:0] inst_wdata   ,
+    input         inst_cache   ,
     output [31:0] inst_rdata   ,
     output        inst_addr_ok ,
     output        inst_data_ok ,
@@ -49,6 +50,7 @@ module cpu_axi_interface
     //data sram-like 
     input         data_req     ,
     input         data_wr      ,
+    input         data_cache   ,
     input  [1 :0] data_size    ,
     input  [31:0] data_addr    ,
     input  [31:0] data_wdata   ,
@@ -60,7 +62,7 @@ module cpu_axi_interface
     //ar
     output [3 :0] arid         ,
     output [31:0] araddr       ,
-    output [7 :0] arlen        ,
+    output [3 :0] arlen        ,
     output [2 :0] arsize       ,
     output [1 :0] arburst      ,
     output [1 :0] arlock        ,
@@ -78,7 +80,7 @@ module cpu_axi_interface
     //aw          
     output [3 :0] awid         ,
     output [31:0] awaddr       ,
-    output [7 :0] awlen        ,
+    output [3 :0] awlen        ,
     output [2 :0] awsize       ,
     output [1 :0] awburst      ,
     output [1 :0] awlock       ,
@@ -103,6 +105,7 @@ module cpu_axi_interface
 reg do_req;
 reg do_req_or; //req is inst or data;1:data,0:inst
 reg do_wr_r;
+reg        do_cache_r;
 reg [1 :0] do_size_r;
 reg [31:0] do_addr_r;
 reg [31:0] do_wdata_r;
@@ -124,6 +127,8 @@ begin
                   inst_req&&inst_addr_ok ? inst_size : do_size_r;
     do_addr_r  <= data_req&&data_addr_ok ? data_addr :
                   inst_req&&inst_addr_ok ? inst_addr : do_addr_r;
+    do_cache_r <= data_req&&data_addr_ok ? data_cache :
+                  inst_req&&inst_addr_ok ? inst_cache : do_cache_r;
     do_wdata_r <= data_req&&data_addr_ok ? data_wdata :
                   inst_req&&inst_addr_ok ? inst_wdata :do_wdata_r;
 end
@@ -152,11 +157,11 @@ end
 //ar
 assign arid    = 4'd0;
 assign araddr  = do_addr_r;
-assign arlen   = 8'd0;
+assign arlen   = 4'd0;
 assign arsize  = do_size_r;
 assign arburst = 2'd0;
 assign arlock  = 2'd0;
-assign arcache = 4'd0;
+assign arcache = 4'b0000;
 assign arprot  = 3'd0;
 assign arvalid = do_req&&!do_wr_r&&!addr_rcv;
 //r
@@ -165,11 +170,11 @@ assign rready  = 1'b1;
 //aw
 assign awid    = 4'd0;
 assign awaddr  = do_addr_r;
-assign awlen   = 8'd0;
+assign awlen   = 4'd0;
 assign awsize  = do_size_r;
 assign awburst = 2'd0;
 assign awlock  = 2'd0;
-assign awcache = 4'd0;
+assign awcache = 4'b0000;
 assign awprot  = 3'd0;
 assign awvalid = do_req&&do_wr_r&&!addr_rcv;
 //w

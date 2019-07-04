@@ -122,5 +122,156 @@ mips_top mips_core(
 .data_stall(data_stall)
 );
 
+wire [31:0] inst_addr;
+wire        inst_ren;
+wire  	    inst_valid;
+wire [31:0] inst_rd;
+wire [31:0] data_addr;
+wire [3:0]  data_wen;
+wire        data_ren;
+wire [31:0] data_wd;
+wire 	    data_valid;
+wire [31:0] data_rd;
+
+sram_interface sram_interface_module
+(
+.clk(aclk),
+.rst(aresetn),
+.flush(flush),
+.inst_sram_addr(inst_sram_addr),
+.inst_sram_rdata(inst_sram_rdata),
+.inst_stall(inst_stall),
+.data_sram_addr(data_sram_addr),
+.data_sram_ren(data_sram_ren),
+.data_sram_rdata(data_sram_rdata),
+.data_sram_wen(data_sram_wen),
+.data_sram_wdata(data_sram_wdata),
+.data_stall(data_stall),
+
+.inst_addr(inst_addr),
+.inst_ren(inst_ren),
+.inst_valid(inst_valid),
+.inst_rd(inst_rd),
+.data_addr(data_addr),
+.data_wen(data_wen),
+.data_ren(data_ren),
+.data_wd(data_wd),
+.data_valid(data_valid),
+.data_rd(data_rd)
+);
+
+wire [31:0] inst_cache_bridge_araddr;
+wire        inst_cache_bridge_arvalid;
+wire        inst_cache_bridge_arready;
+wire [31:0] inst_cache_bridge_rdata;
+wire        inst_cache_bridge_rlast;
+wire        inst_cache_bridge_rvalid;
+wire        inst_cache_bridge_rready;
+
+wire [31:0] data_cache_bridge_araddr;
+wire        data_cache_bridge_arvalid;
+wire        data_cache_bridge_arready;
+wire [31:0] data_cache_bridge_rdata;
+wire        data_cache_bridge_rlast;
+wire        data_cache_bridge_rvalid;
+wire        data_cache_bridge_rready;
+
+inst_cache_fifo  inst_cache_fifo_module
+(
+.rst            (aresetn),
+.clk            (aclk),
+.m_araddr       (inst_cache_bridge_araddr),
+.m_arvalid      (inst_cache_bridge_arvalid),
+.m_arready      (inst_cache_bridge_arready),
+
+.m_rdata        (inst_cache_bridge_rdata),
+.m_rlast        (inst_cache_bridge_rlast),
+.m_rvalid       (inst_cache_bridge_rvalid),
+.m_rready       (inst_cache_bridge_rready),
+
+.s_araddr       (inst_addr),
+.s_arvalid      (inst_ren),
+.s_rdata        (inst_rd),
+.s_rvalid       (inst_valid)
+);
+
+wire data_valid_r;
+wire data_valid_w;
+
+data_cache_fifo data_cache_fifo_module
+(
+.clk            (aclk),
+.rst            (aresetn),
+
+.m_araddr       (data_cache_bridge_araddr),
+.m_arvalid      (data_cache_bridge_arvalid),
+.m_arready      (data_cache_bridge_arready),
+.m_rdata        (data_cache_bridge_rdata),
+.m_rlast        (data_cache_bridge_rlast),
+.m_rvalid       (data_cache_bridge_rvalid),
+.m_rready       (data_cache_bridge_rready),
+              
+.m_awaddr       (awaddr),
+.m_awvalid      (awvalid),
+.m_awready      (awready),
+ 
+.m_wdata        (wdata),
+.m_wstrb        (wstrb),
+.m_wlast        (wlast),
+.m_wvalid       (wvalid),
+.m_wready       (wready),
+              
+.m_bvalid       (bvalid),
+.m_bready       (bready),
+             
+.s_addr         (data_addr),
+.s_rdata        (data_rd),
+.s_rvalid       (data_valid_r),
+.s_rready       (data_ren),
+.s_wdata        (data_wd),
+.s_wvalid       (data_wen),
+.s_wready       (data_valid_w)
+);
+
+assign data_valid = data_valid_r || data_valid_w;
+
+axi_cache_merge axi_cache_merge_module
+(
+.inst_ren	   (inst_ren),
+.inst_araddr   (inst_cache_bridge_araddr),
+.inst_arvalid  (inst_cache_bridge_arvalid),
+.inst_arready  (inst_cache_bridge_arready),         
+.inst_rdata    (inst_cache_bridge_rdata),
+.inst_rlast    (inst_cache_bridge_rlast),
+.inst_rready   (inst_cache_bridge_rready),
+.inst_rvalid   (inst_cache_bridge_rvalid),
+
+.data_ren	   (data_ren),
+.data_araddr   (data_cache_bridge_araddr),
+.data_arvalid  (data_cache_bridge_arvalid),
+.data_arready  (data_cache_bridge_arready),         
+.data_rdata    (data_cache_bridge_rdata),
+.data_rlast    (data_cache_bridge_rlast),
+.data_rready   (data_cache_bridge_rready),
+.data_rvalid   (data_cache_bridge_rvalid),
+
+.arid          (arid),
+.araddr        (araddr),
+.arlen         (arlen),
+.arsize        (arsize),
+.arburst       (arburst),
+.arlock        (arlock),
+.arcache       (arcache),
+.arprot        (arprot),
+.arvalid       (arvalid),
+.arready       (arready),
+               
+.rid           (rid),
+.rdata         (rdata),
+.rresp         (rresp),
+.rlast         (rlast),
+.rvalid        (rvalid),
+.rready        (rready)
+);
 
 endmodule
