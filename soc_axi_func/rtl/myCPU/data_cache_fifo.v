@@ -50,7 +50,7 @@ assign  s_wready       = 1'b0;
 `endif
 
 
-/*  
+  
 reg [31:0] set0_data;
 reg [31:0] set1_data;
 reg [31:0] set2_data;
@@ -65,6 +65,7 @@ reg [31:0]  s_addr_r;
 reg [31:0]  s_data_r;
 reg [3:0]   s_wvalid_r;
 reg         hit;
+reg         dirty;
 reg         set0_hit;
 reg         set1_hit;
 reg         set2_hit;
@@ -74,14 +75,19 @@ reg [1:0]   set0_ptr;
 reg [1:0]   set1_ptr;
 reg [1:0]   set2_ptr;
 reg [1:0]   set3_ptr;
-reg [2:0]   state;
+reg [3:0]   state;
 reg [3:0]   cacheline_ptr;
 
-parameter [2:0] state_idle = 3'b000;
-parameter [2:0] state_read_wait_ram = 3'b001;
-parameter [2:0] state_hit = 3'b010;
-parameter [2:0] state_write_wait_ram = 3'b011;
-parameter [2:0] state_wait_done = 3'b110;
+parameter [3:0] state_idle = 4'b0000;
+parameter [3:0] state_read_hit = 4'b0001;
+parameter [3:0] state_read_miss_wait_write = 4'b0010;
+parameter [3:0] state_read_miss_wait_read = 4'b0011;
+parameter [3:0] state_read_miss_done = 4'b0100;
+
+parameter [3:0] state_write_hit = 4'b0101;
+parameter [3:0] state_write_miss_wait_write = 4'b0110;
+parameter [3:0] state_write_miss_wait_read = 4'b0111;
+parameter [3:0] state_write_miss_done = 4'b1000; 
 
 task cacheline_write_data(output [536:0] cacheline); 
 begin
@@ -126,6 +132,8 @@ task cacheline_get_data(input [537:0] cacheline ,output [31:0] cacheline_data);
     4'he:   cacheline_data = cacheline[`addr14];
     4'hf:   cacheline_data = cacheline[`addr15];
     endcase
+    if(cacheline[`dirty_bit] == 1'b1) dirty = 1'b1;
+    else dirty = 1'b0;
 endtask
 
 task find_set0(output [31:0] data);
@@ -435,13 +443,20 @@ begin
             if(hit == 1'b1) begin
                 s_rvalid_r <= 1'b1;
                 s_rdata_r <= hit_cache_data;
-                state <= state_hit;
+                state <= state_read_hit;
             end else begin
-                state <= state_read_wait_ram;
-                s_rvalid_r <= 1'b0;
-                m_arvalid_r <= 1'b1;
-                m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
-                if(m_arready == 1'b1) bus_addr_ok = 1'b1;
+                if(dirty == 1'b1) 
+                    state <= state_read_miss_wait_write;
+                    m_awaddr_r <=  {s_addr_r[31:6],6'b00_0000};
+                    m_awvalid_r <= 1'b1;
+                    s_wready_r <= 1'b0;
+                else begin
+                    state <= state_read_miss_wait_read;
+                    s_rvalid_r <= 1'b0;
+                    m_arvalid_r <= 1'b1;
+                    m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
+                    if(m_arready == 1'b1) bus_addr_ok = 1'b1; //seems no need
+                end
             end
         end else if(s_wvalid != 4'b000 && state == state_idle) begin
             get_s_data_wvalid_r();
@@ -450,7 +465,12 @@ begin
                 state <= state_write_hit;
                 s_wready <= 1'b1;
             end else begin 
-                //state <= ...
+                if(dirty == 1'b1) begin
+                    state <= state_write_miss_wait_write;
+                end
+                else begin 
+                    state <= state_write_miss_wait_read;
+                end
             end
                 // tag_addr hit? 
                 // if hit ok skip
@@ -461,7 +481,7 @@ begin
                 // write current data to the cacheline
                 // finish
                 //cache_write_data(dirty);    //need to change
-        end else if(state == state_hit) begin
+        end else if(state == state_read_hit) begin
                set0_hit <= 1'b0;
                set1_hit <= 1'b0;
                set2_hit <= 1'b0;
