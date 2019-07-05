@@ -2,27 +2,17 @@
 module inst_cache_fifo(
     input         rst            ,
     input         clk            ,
-    //output [3 :0] m_arid         ,
+
     output [31:0] m_araddr       ,
-    //output [7 :0] m_arlen        ,
-    //output [2 :0] m_arsize       ,
-    //output [1 :0] m_arburst      ,
-    //output [1 :0] m_arlock       ,
-    //output [3 :0] m_arcache      ,
-    //output [2 :0] m_arprot       ,
     output        m_arvalid      ,
     input         m_arready      ,
-    //r           m_
-    //input  [3 :0] m_rid          ,
     input  [31:0] m_rdata        ,
-    //input  [1 :0] m_rresp        ,
     input         m_rlast        ,
     input         m_rvalid       ,
     output        m_rready       ,
 
     input  [31:0] s_araddr       ,
     input         s_arvalid      ,
-
     output [31:0] s_rdata        ,
     output        s_rvalid       
 

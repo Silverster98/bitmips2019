@@ -210,11 +210,19 @@ data_cache_fifo data_cache_fifo_module
 .m_rlast        (data_cache_bridge_rlast),
 .m_rvalid       (data_cache_bridge_rvalid),
 .m_rready       (data_cache_bridge_rready),
-              
+
+.m_awid         (awid),
+.m_awlen        (awlen),
+.m_awsize       (awsize),
+.m_awburst      (awburst),
+.m_awlock       (awlock),
+.m_awcache      (awcache),
+.m_awprot       (awprot),         
 .m_awaddr       (awaddr),
 .m_awvalid      (awvalid),
 .m_awready      (awready),
  
+.m_wid          (wid),
 .m_wdata        (wdata),
 .m_wstrb        (wstrb),
 .m_wlast        (wlast),
@@ -225,11 +233,11 @@ data_cache_fifo data_cache_fifo_module
 .m_bready       (bready),
              
 .s_addr         (data_addr),
+.s_arvalid      (data_ren),
 .s_rdata        (data_rd),
 .s_rvalid       (data_valid_r),
-.s_rready       (data_ren),
 .s_wdata        (data_wd),
-.s_wvalid       (data_wen),
+.s_awvalid      (data_wen),
 .s_wready       (data_valid_w)
 );
 
