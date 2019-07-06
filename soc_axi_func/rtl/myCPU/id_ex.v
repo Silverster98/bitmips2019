@@ -60,7 +60,7 @@ module id_ex(
     assign data_stall = stall[3];
     
     always @ (posedge clk) begin
-        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON || id_stall == 1'b1) begin
+        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON) begin
             ex_pc <= `ZEROWORD32;
             ex_rs_data <= `ZEROWORD32;
             ex_rt_data <= `ZEROWORD32;
@@ -87,7 +87,7 @@ module id_ex(
             ex_exception_type <= 6'h0;
         end else begin
             if (exe_stall == 1'b1 || data_stall == 1'b1) begin // data_stall need to stall
-            end else if (inst_stall == 1'b1) begin
+            end else if (inst_stall == 1'b1 || id_stall == 1'b1) begin
                 ex_pc <= `ZEROWORD32;
                 ex_rs_data <= `ZEROWORD32;
                 ex_rt_data <= `ZEROWORD32;

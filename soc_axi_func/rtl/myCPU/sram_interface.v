@@ -37,6 +37,10 @@ assign inst_addr = inst_sram_addr;
 assign data_addr = data_sram_addr;
 
 reg[1:0] handle_data; // 00 is common, 01 is wait for data, 10 is data ok
+reg[1:0] handle_data_t;
+always @(posedge clk) begin
+    handle_data = handle_data_t;
+end
 
 parameter[1:0] state_idle = 2'b00;
 parameter[1:0] state_req = 2'b01;
@@ -60,7 +64,7 @@ always @ (*) begin
             inst_stall = 1'b1;
             data_stall = 1'b1;
             data_wd = 32'b0;
-            handle_data = 2'b00;
+            handle_data_t = 2'b00;
         end
         state_req: begin
             if (data_sram_ren == 1'b1 && handle_data == 2'b00) begin
@@ -68,19 +72,19 @@ always @ (*) begin
                 data_ren = 1'b1;
                 data_wen = 4'b0;
                 data_wd = 32'b0;
-                handle_data = 2'b01;
+                handle_data_t = 2'b01;
             end else if (data_sram_wen != 4'b0 && handle_data == 2'b00) begin
                 inst_ren = 1'b0;
                 data_ren = 1'b0;
                 data_wen = data_sram_wen;
                 data_wd = data_sram_wdata;
-                handle_data = 2'b01;
+                handle_data_t = 2'b01;
             end else begin
                 inst_ren = 1'b1;
                 data_ren = 1'b0;
                 data_wen = 4'b0;
                 data_wd = 32'b0;
-                handle_data = 2'b00;
+                handle_data_t = 2'b00;
             end
             
             inst_stall = 1'b1;
@@ -92,13 +96,13 @@ always @ (*) begin
                 inst_buf = inst_rd;
                 inst_stall = 1'b0;
                 data_stall = 1'b0;
-                handle_data = 2'b00;
+                handle_data_t = 2'b00;
                 next_state = state_req;
             end
             
             if (data_valid && handle_data == 2'b01) begin
                 data_buf = data_rd;
-                handle_data = 2'b10;
+                handle_data_t = 2'b10;
                 next_state = state_req;
             end
         end
