@@ -28,13 +28,30 @@ module sram_interface(
     output reg data_ren,
     output reg[31:0] data_wd,
     input wire data_valid,
-    input wire[31:0] data_rd
+    input wire[31:0] data_rd,
+    
+    output wire is_cache
 );
+
+assign is_cache = judge_is_cache(inst_ren, inst_sram_addr, data_ren, data_wen, data_sram_addr);
+
+function judge_is_cache(input inst_ren, input [31:0] inst_sram_addr, input data_ren, input [3:0] data_wen, 
+                        input [31:0] data_sram_addr);
+begin
+    if (data_ren == 1 || data_wen != 4'b0000) begin
+        judge_is_cache = (data_sram_addr[31:29] == 3'b101) ? 1'b0 : 1'b1;
+    end else if (inst_ren == 1'b1) begin
+        judge_is_cache = (inst_sram_addr[31:29] == 3'b101) ? 1'b0 : 1'b1;
+    end else begin
+        judge_is_cache = 1'b1;
+    end
+end
+endfunction
 
 reg[31:0] inst_buf, data_buf;
 
-assign inst_addr = inst_sram_addr;
-assign data_addr = data_sram_addr;
+assign inst_addr = inst_sram_addr[31:30] == 2'b10 ? {3'b000, inst_sram_addr[28:0]} : inst_sram_addr;
+assign data_addr = data_sram_addr[31:30] == 2'b10 ? {3'b000, inst_sram_addr[28:0]} : data_sram_addr;
 
 reg[1:0] handle_data; // 00 is common, 01 is wait for data, 10 is data ok
 reg[1:0] handle_data_t;
