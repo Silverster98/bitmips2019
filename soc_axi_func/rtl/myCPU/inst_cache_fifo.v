@@ -2,7 +2,8 @@
 module inst_cache_fifo(
     input         rst            ,
     input         clk            ,
-
+    input         cache_ena      ,
+    
     output [31:0] m_araddr       ,
     output        m_arvalid      ,
     input         m_arready      ,
@@ -20,15 +21,6 @@ module inst_cache_fifo(
 );
 
 assign m_rready = 1'b1;
-//assign m_arid = 4'b0000;
-//assign m_arlen = 8'h0f;  
-//assign m_arsize = 3'b010;
-//assign m_arburst = 2'b01;
-//assign m_arlock = 2'b00;
-//assign m_arcache = 4'b0000;
-//assign m_arprot = 3'b000;
-//  --------------------cache line---------------
-//  addr [31:8]     16 x data[31:0]       valid bit
 
 reg [536:0] set0[3:0];
 reg [536:0] set1[3:0];
@@ -51,11 +43,13 @@ reg [31:0]  s_araddr_r;
 reg [3:0]   cacheline_ptr;
 
 
-reg [1:0]  state;
-parameter [1:0] state_idle = 2'b00;
-parameter [1:0] state_wait_ram = 2'b01;
-parameter [1:0] state_hit = 2'b10;
-parameter [1:0] state_wait_done = 2'b11;
+reg [2:0]  state;
+parameter [2:0] state_idle = 3'b000;
+parameter [2:0] state_wait_ram = 3'b001;
+parameter [2:0] state_hit = 3'b010;
+parameter [2:0] state_wait_done = 3'b011;
+parameter [2:0] state_uncache_wait_ram = 3'b100;
+parameter [2:0] state_uncache_wait_done = 3'b101;
 
 task cacheline_get_data(input [536:0] cacheline ,output [31:0] cacheline_data);
     case(s_araddr_r[5:2])
@@ -294,17 +288,24 @@ begin
     end else begin
         if(state == state_idle && s_arvalid == 1'b1) begin
             get_s_araddr_r();
-            find_cache(hit_cache_data);
-            if(hit == 1'b1) begin
-                s_rvalid_r <= 1'b1;
-                s_rdata_r  <= hit_cache_data;
-                state <= state_hit;
-            end else begin
+            if(cache_ena) begin
+                find_cache(hit_cache_data);
+                if(hit == 1'b1) begin
+                    s_rvalid_r <= 1'b1;
+                    s_rdata_r  <= hit_cache_data;
+                    state <= state_hit;
+                end else begin
+                    s_rvalid_r <= 1'b0;
+                    state <= state_wait_ram; 
+                    m_arvalid_r <= 1'b1;
+                    m_araddr_r <= {s_araddr_r[31:6],6'b00_0000};
+                    if(m_arready == 1'b1) bus_addr_ok = 1'b1;
+                end
+            end else begin 
                 s_rvalid_r <= 1'b0;
-                state <= state_wait_ram; 
+                state <= state_uncache_wait_ram; 
                 m_arvalid_r <= 1'b1;
-                m_araddr_r <= {s_araddr_r[31:6],6'b00_0000};
-                if(m_arready == 1'b1) bus_addr_ok = 1'b1;
+                m_araddr_r <= s_araddr_r;
             end
         end else if(state == state_hit) begin
                set0_hit <= 1'b0;
@@ -329,6 +330,17 @@ begin
                 s_rdata_r  <= hit_cache_data;
                 state <= state_hit;
             end 
+        end else if(state == state_uncache_wait_ram) begin
+            if(bus_addr_ok || m_arready)
+                m_arvalid_r <= 1'b0;
+            if(m_rvalid == 1'b1) begin
+                hit_cache_data <= m_rdata;
+                state <= state_uncache_wait_done;
+            end
+        end else if(state == state_uncache_wait_done) begin
+            s_rvalid_r <= 1'b1;  
+            s_rdata_r  <= hit_cache_data;    
+            state <= state_hit;
         end
     end
 end

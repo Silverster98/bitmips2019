@@ -132,6 +132,7 @@ wire        data_ren;
 wire [31:0] data_wd;
 wire 	    data_valid;
 wire [31:0] data_rd;
+wire        is_cache;
 
 sram_interface sram_interface_module
 (
@@ -157,7 +158,8 @@ sram_interface sram_interface_module
 .data_ren(data_ren),
 .data_wd(data_wd),
 .data_valid(data_valid),
-.data_rd(data_rd)
+.data_rd(data_rd),
+.is_cache(is_cache)
 );
 
 wire [31:0] inst_cache_bridge_araddr;
@@ -180,6 +182,7 @@ inst_cache_fifo  inst_cache_fifo_module
 (
 .rst            (aresetn),
 .clk            (aclk),
+.cache_ena      (is_cache),
 .m_araddr       (inst_cache_bridge_araddr),
 .m_arvalid      (inst_cache_bridge_arvalid),
 .m_arready      (inst_cache_bridge_arready),
@@ -202,6 +205,7 @@ data_cache_fifo data_cache_fifo_module
 (
 .clk            (aclk),
 .rst            (aresetn),
+.cache_ena      (is_cache),
 
 .m_araddr       (data_cache_bridge_araddr),
 .m_arvalid      (data_cache_bridge_arvalid),
@@ -245,6 +249,7 @@ assign data_valid = data_valid_r || data_valid_w;
 
 axi_cache_merge axi_cache_merge_module
 (
+.cache_ena      (is_cache),
 .inst_ren	   (inst_ren),
 .inst_araddr   (inst_cache_bridge_araddr),
 .inst_arvalid  (inst_cache_bridge_arvalid),

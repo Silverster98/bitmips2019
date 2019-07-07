@@ -2,6 +2,7 @@
 module data_cache_fifo(
     input         clk            ,
     input         rst            ,
+    input         cache_ena      ,
     output [31:0] m_araddr       ,
     output        m_arvalid      ,
     input         m_arready      ,
@@ -103,6 +104,12 @@ parameter [3:0] state_write_miss_wait_awready = 4'b0111;
 parameter [3:0] state_write_miss_wait_write_burst = 4'b1000;
 parameter [3:0] state_write_miss_wait_read_burst = 4'b1001;
 parameter [3:0] state_write_miss_wait_finish = 4'b1010;
+
+parameter [3:0] state_read_uncache_wait_ram= 4'b1011;
+parameter [3:0] state_read_uncache_wait_finish = 4'b1100;
+
+parameter [3:0] state_write_uncache_wait_ram = 4'b1101;
+parameter [3:0] state_write_uncache_wait_finish = 4'b1110;
 
 task cacheline_byte_write_data(output [537:0] cacheline, input [3:0] wen, input [31:0] write_data);
 begin
@@ -558,53 +565,65 @@ begin
         case(state)
         state_idle: begin
             if(s_arvalid == 1'b1) begin
-                is_read = 1'b1;        
+                is_read = 1'b1;
                 get_s_addr_r();
-                find_cache();
-                if(hit == 1'b1) begin
-					cache_read_data(s_rdata_r);
-                    s_rvalid_r <= 1'b1;
-                    state <= state_read_hit;
-                end else begin
-                    if(dirty == 1'b1) begin
-                        get_current_tag();
-						state <= state_read_miss_wait_awready;
-                        m_awaddr_r <=  {current_tag,6'b00_0000};
-                        m_awvalid_r <= 1'b1;
+                if(cache_ena == 1'b1) begin
+                    find_cache();
+                    if(hit == 1'b1) begin
+                        cache_read_data(s_rdata_r);
+                        s_rvalid_r <= 1'b1;
+                        state <= state_read_hit;
                     end else begin
-                        state <= state_read_miss_wait_read_burst;
-                        m_arvalid_r <= 1'b1;
-                        m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
-                    end
-                end
-            end
-            if(s_awvalid != 4'b0000) begin
-                is_read = 1'b0;
-                get_s_addr_r();
-                find_cache();
-                if(hit == 1'b1) begin
-                    s_wready_r <= 1'b1;
-                    state <= state_write_hit;
-					cache_write_data(s_awvalid,s_wdata);
-				end else begin
-					if(dirty == 1'b1) begin
-						get_current_tag();
-						state <= state_write_miss_wait_awready;
-						m_awaddr_r <=  {current_tag,6'b00_0000};
-						m_awvalid_r <= 1'b1;
-					end else begin
-					    get_empty();
-					    if(is_empty) begin
-					       cache_write_data(s_awvalid,s_wdata);
-					       write_current_tag();
-					       state <= state_write_hit;
-					       s_wready_r <= 1'b1;
-					    end else begin
-                            state <= state_write_miss_wait_read_burst;
+                        if(dirty == 1'b1) begin
+                            get_current_tag();
+                            state <= state_read_miss_wait_awready;
+                            m_awaddr_r <=  {current_tag,6'b00_0000};
+                            m_awvalid_r <= 1'b1;
+                        end else begin
+                            state <= state_read_miss_wait_read_burst;
                             m_arvalid_r <= 1'b1;
                             m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
                         end
-					end
+                    end
+                end else begin
+                    state <= state_read_uncache_wait_ram;
+                    m_arvalid_r <= 1'b1;
+                    m_araddr_r <= s_addr_r;
+                end
+            end
+            if(s_awvalid != 4'b0000) begin
+                get_s_addr_r();
+                if(cache_ena == 1'b1) begin
+                    is_read = 1'b0;
+                    find_cache();
+                    if(hit == 1'b1) begin
+                        s_wready_r <= 1'b1;
+                        state <= state_write_hit;
+                        cache_write_data(s_awvalid,s_wdata);
+                    end else begin
+                        if(dirty == 1'b1) begin
+                            get_current_tag();
+                            state <= state_write_miss_wait_awready;
+                            m_awaddr_r <=  {current_tag,6'b00_0000};
+                            m_awvalid_r <= 1'b1;
+                        end else begin
+                            get_empty();
+                            if(is_empty) begin
+                               cache_write_data(s_awvalid,s_wdata);
+                               write_current_tag();
+                               state <= state_write_hit;
+                               s_wready_r <= 1'b1;
+                            end else begin
+                                state <= state_write_miss_wait_read_burst;
+                                m_arvalid_r <= 1'b1;
+                                m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
+                            end
+                        end
+                    end
+                end else begin
+                    state <= state_write_uncache_wait_ram;
+                    m_awaddr_r <= s_addr_r;
+                    m_awvalid_r <= 1'b1;
                 end
             end
         end
@@ -684,6 +703,37 @@ begin
                   add_ptr();
               end
         end
+        state_read_uncache_wait_ram: begin
+            if(m_arready) m_arvalid_r <= 1'b0;
+            if(m_rvalid == 1'b1) begin
+                hit_cache_data <= m_rdata;
+                state <= state_read_uncache_wait_finish;
+            end
+        end
+        state_read_uncache_wait_finish: begin
+            s_rvalid_r <= 1'b1;  
+            s_rdata_r  <= hit_cache_data;    
+            state <= state_read_hit;
+        end
+		state_write_uncache_wait_ram: begin
+		  if(m_awready) begin 
+		      m_awvalid_r <= 1'b0;
+		      m_wdata_r <= s_wdata;
+		      m_wvalid_r <= 1'b1;
+		      m_wlast_r <= 1'b1;
+		  end
+		  if(m_bvalid) begin
+		      m_wvalid_r <= 1'b0;
+		      m_wlast_r <= 1'b0;
+		      state <= state_write_uncache_wait_finish;
+		      s_wready_r <= 1'b1;
+		   end
+		end
+		state_write_uncache_wait_finish: begin
+		    s_wready_r <= 1'b0;
+		    state <= state_idle;
+		end
+		
 		default: ;
         endcase
    end
@@ -694,10 +744,10 @@ assign m_rready = 1'b1;
 
 assign m_awaddr = m_awaddr_r;
 assign m_awvalid = m_awvalid_r;
-assign m_awlen = 8'h0f;
+assign m_awlen = cache_ena ? 8'h0f:8'h00;
 assign m_awid = 4'b0000;
 assign m_awsize = 3'b010;
-assign m_awburst = 2'b01;
+assign m_awburst = cache_ena ? 2'b01:2'b00;
 assign m_awlock = 2'b00;
 assign m_awcache = 4'b0000;
 assign m_awprot = 3'b000;

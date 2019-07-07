@@ -51,7 +51,7 @@ endfunction
 reg[31:0] inst_buf, data_buf;
 
 assign inst_addr = inst_sram_addr[31:30] == 2'b10 ? {3'b000, inst_sram_addr[28:0]} : inst_sram_addr;
-assign data_addr = data_sram_addr[31:30] == 2'b10 ? {3'b000, inst_sram_addr[28:0]} : data_sram_addr;
+assign data_addr = data_sram_addr[31:30] == 2'b10 ? {3'b000, data_sram_addr[28:0]} : data_sram_addr;
 
 reg[1:0] handle_data; // 00 is common, 01 is wait for data, 10 is data ok
 reg[1:0] handle_data_t;
