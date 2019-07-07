@@ -109,82 +109,82 @@ begin
     if(is_read == 1'b0) cacheline[`dirty_bit] = 1'b1;
     if(wen[3] == 1'b1) begin
     case(s_addr_r[5:2])
-    4'h0:   cacheline[`addr_byte3_0]  =  write_data;
-    4'h1:   cacheline[`addr_byte3_1]  =  write_data;
-    4'h2:   cacheline[`addr_byte3_2]  =  write_data;
-    4'h3:   cacheline[`addr_byte3_3]  =  write_data;
-    4'h4:   cacheline[`addr_byte3_4]  =  write_data;
-    4'h5:   cacheline[`addr_byte3_5]  =  write_data;
-    4'h6:   cacheline[`addr_byte3_6]  =  write_data;
-    4'h7:   cacheline[`addr_byte3_7]  =  write_data;
-    4'h8:   cacheline[`addr_byte3_8]  =  write_data;
-    4'h9:   cacheline[`addr_byte3_9]  =  write_data;
-    4'ha:   cacheline[`addr_byte3_10] =  write_data;
-    4'hb:   cacheline[`addr_byte3_11] =  write_data;
-    4'hc:   cacheline[`addr_byte3_12] =  write_data;
-    4'hd:   cacheline[`addr_byte3_13] =  write_data;
-    4'he:   cacheline[`addr_byte3_14] =  write_data;
-    4'hf:   cacheline[`addr_byte3_15] =  write_data;
+    4'h0:   cacheline[`addr_byte3_0]  =  write_data[31:24];
+    4'h1:   cacheline[`addr_byte3_1]  =  write_data[31:24];
+    4'h2:   cacheline[`addr_byte3_2]  =  write_data[31:24];
+    4'h3:   cacheline[`addr_byte3_3]  =  write_data[31:24];
+    4'h4:   cacheline[`addr_byte3_4]  =  write_data[31:24];
+    4'h5:   cacheline[`addr_byte3_5]  =  write_data[31:24];
+    4'h6:   cacheline[`addr_byte3_6]  =  write_data[31:24];
+    4'h7:   cacheline[`addr_byte3_7]  =  write_data[31:24];
+    4'h8:   cacheline[`addr_byte3_8]  =  write_data[31:24];
+    4'h9:   cacheline[`addr_byte3_9]  =  write_data[31:24];
+    4'ha:   cacheline[`addr_byte3_10] =  write_data[31:24];
+    4'hb:   cacheline[`addr_byte3_11] =  write_data[31:24];
+    4'hc:   cacheline[`addr_byte3_12] =  write_data[31:24];
+    4'hd:   cacheline[`addr_byte3_13] =  write_data[31:24];
+    4'he:   cacheline[`addr_byte3_14] =  write_data[31:24];
+    4'hf:   cacheline[`addr_byte3_15] =  write_data[31:24];
     endcase
     end
     if(wen[2] == 1'b1) begin
     case(s_addr_r[5:2])
-    4'h0:   cacheline[`addr_byte2_0]  =  write_data;
-    4'h1:   cacheline[`addr_byte2_1]  =  write_data;
-    4'h2:   cacheline[`addr_byte2_2]  =  write_data;
-    4'h3:   cacheline[`addr_byte2_3]  =  write_data;
-    4'h4:   cacheline[`addr_byte2_4]  =  write_data;
-    4'h5:   cacheline[`addr_byte2_5]  =  write_data;
-    4'h6:   cacheline[`addr_byte2_6]  =  write_data;
-    4'h7:   cacheline[`addr_byte2_7]  =  write_data;
-    4'h8:   cacheline[`addr_byte2_8]  =  write_data;
-    4'h9:   cacheline[`addr_byte2_9]  =  write_data;
-    4'ha:   cacheline[`addr_byte2_10] =  write_data;
-    4'hb:   cacheline[`addr_byte2_11] =  write_data;
-    4'hc:   cacheline[`addr_byte2_12] =  write_data;
-    4'hd:   cacheline[`addr_byte2_13] =  write_data;
-    4'he:   cacheline[`addr_byte2_14] =  write_data;
-    4'hf:   cacheline[`addr_byte2_15] =  write_data;
+    4'h0:   cacheline[`addr_byte2_0]  =  write_data[23:16];
+    4'h1:   cacheline[`addr_byte2_1]  =  write_data[23:16];
+    4'h2:   cacheline[`addr_byte2_2]  =  write_data[23:16];
+    4'h3:   cacheline[`addr_byte2_3]  =  write_data[23:16];
+    4'h4:   cacheline[`addr_byte2_4]  =  write_data[23:16];
+    4'h5:   cacheline[`addr_byte2_5]  =  write_data[23:16];
+    4'h6:   cacheline[`addr_byte2_6]  =  write_data[23:16];
+    4'h7:   cacheline[`addr_byte2_7]  =  write_data[23:16];
+    4'h8:   cacheline[`addr_byte2_8]  =  write_data[23:16];
+    4'h9:   cacheline[`addr_byte2_9]  =  write_data[23:16];
+    4'ha:   cacheline[`addr_byte2_10] =  write_data[23:16];
+    4'hb:   cacheline[`addr_byte2_11] =  write_data[23:16];
+    4'hc:   cacheline[`addr_byte2_12] =  write_data[23:16];
+    4'hd:   cacheline[`addr_byte2_13] =  write_data[23:16];
+    4'he:   cacheline[`addr_byte2_14] =  write_data[23:16];
+    4'hf:   cacheline[`addr_byte2_15] =  write_data[23:16];
     endcase
     end
     if(wen[1] == 1'b1) begin
     case(s_addr_r[5:2])
-    4'h0:   cacheline[`addr_byte1_0]  =  write_data;
-    4'h1:   cacheline[`addr_byte1_1]  =  write_data;
-    4'h2:   cacheline[`addr_byte1_2]  =  write_data;
-    4'h3:   cacheline[`addr_byte1_3]  =  write_data;
-    4'h4:   cacheline[`addr_byte1_4]  =  write_data;
-    4'h5:   cacheline[`addr_byte1_5]  =  write_data;
-    4'h6:   cacheline[`addr_byte1_6]  =  write_data;
-    4'h7:   cacheline[`addr_byte1_7]  =  write_data;
-    4'h8:   cacheline[`addr_byte1_8]  =  write_data;
-    4'h9:   cacheline[`addr_byte1_9]  =  write_data;
-    4'ha:   cacheline[`addr_byte1_10] =  write_data;
-    4'hb:   cacheline[`addr_byte1_11] =  write_data;
-    4'hc:   cacheline[`addr_byte1_12] =  write_data;
-    4'hd:   cacheline[`addr_byte1_13] =  write_data;
-    4'he:   cacheline[`addr_byte1_14] =  write_data;
-    4'hf:   cacheline[`addr_byte1_15] =  write_data;
+	4'h0:   cacheline[`addr_byte1_0]  =  write_data[15:8];
+    4'h1:   cacheline[`addr_byte1_1]  =  write_data[15:8];
+    4'h2:   cacheline[`addr_byte1_2]  =  write_data[15:8];
+    4'h3:   cacheline[`addr_byte1_3]  =  write_data[15:8];
+    4'h4:   cacheline[`addr_byte1_4]  =  write_data[15:8];
+    4'h5:   cacheline[`addr_byte1_5]  =  write_data[15:8];
+    4'h6:   cacheline[`addr_byte1_6]  =  write_data[15:8];
+    4'h7:   cacheline[`addr_byte1_7]  =  write_data[15:8];
+    4'h8:   cacheline[`addr_byte1_8]  =  write_data[15:8];
+    4'h9:   cacheline[`addr_byte1_9]  =  write_data[15:8];
+    4'ha:   cacheline[`addr_byte1_10] =  write_data[15:8];
+    4'hb:   cacheline[`addr_byte1_11] =  write_data[15:8];
+    4'hc:   cacheline[`addr_byte1_12] =  write_data[15:8];
+    4'hd:   cacheline[`addr_byte1_13] =  write_data[15:8];
+    4'he:   cacheline[`addr_byte1_14] =  write_data[15:8];
+    4'hf:   cacheline[`addr_byte1_15] =  write_data[15:8];
     endcase
     end
     if(wen[0] == 1'b1) begin
     case(s_addr_r[5:2])
-    4'h0:   cacheline[`addr_byte0_0]  =  write_data;
-    4'h1:   cacheline[`addr_byte0_1]  =  write_data;
-    4'h2:   cacheline[`addr_byte0_2]  =  write_data;
-    4'h3:   cacheline[`addr_byte0_3]  =  write_data;
-    4'h4:   cacheline[`addr_byte0_4]  =  write_data;
-    4'h5:   cacheline[`addr_byte0_5]  =  write_data;
-    4'h6:   cacheline[`addr_byte0_6]  =  write_data;
-    4'h7:   cacheline[`addr_byte0_7]  =  write_data;
-    4'h8:   cacheline[`addr_byte0_8]  =  write_data;
-    4'h9:   cacheline[`addr_byte0_9]  =  write_data;
-    4'ha:   cacheline[`addr_byte0_10] =  write_data;
-    4'hb:   cacheline[`addr_byte0_11] =  write_data;
-    4'hc:   cacheline[`addr_byte0_12] =  write_data;
-    4'hd:   cacheline[`addr_byte0_13] =  write_data;
-    4'he:   cacheline[`addr_byte0_14] =  write_data;
-    4'he:   cacheline[`addr_byte0_15] =  write_data;
+	4'h0:   cacheline[`addr_byte0_0]  =  write_data[7:0];
+    4'h1:   cacheline[`addr_byte0_1]  =  write_data[7:0];
+    4'h2:   cacheline[`addr_byte0_2]  =  write_data[7:0];
+    4'h3:   cacheline[`addr_byte0_3]  =  write_data[7:0];
+    4'h4:   cacheline[`addr_byte0_4]  =  write_data[7:0];
+    4'h5:   cacheline[`addr_byte0_5]  =  write_data[7:0];
+    4'h6:   cacheline[`addr_byte0_6]  =  write_data[7:0];
+    4'h7:   cacheline[`addr_byte0_7]  =  write_data[7:0];
+    4'h8:   cacheline[`addr_byte0_8]  =  write_data[7:0];
+    4'h9:   cacheline[`addr_byte0_9]  =  write_data[7:0];
+    4'ha:   cacheline[`addr_byte0_10] =  write_data[7:0];
+    4'hb:   cacheline[`addr_byte0_11] =  write_data[7:0];
+    4'hc:   cacheline[`addr_byte0_12] =  write_data[7:0];
+    4'hd:   cacheline[`addr_byte0_13] =  write_data[7:0];
+    4'he:   cacheline[`addr_byte0_14] =  write_data[7:0];
+    4'hf:   cacheline[`addr_byte0_15] =  write_data[7:0];
     endcase
     end
 end
@@ -317,7 +317,6 @@ begin
     hit = 1'b0;
     hit_ptr = 2'b00;
     is_read = 1'b0;
-    state = state_idle;
     dirty = 1'b0;
     cacheline_ptr = 4'b0000;
 	current_tag = 26'h00000;
@@ -409,7 +408,7 @@ begin
              2'b11: cacheline_get_data(set2[3],write_data);
          endcase
          end
-     2'b00:begin 
+     2'b11:begin 
          case(set3_ptr)
              2'b00: cacheline_get_data(set3[0],write_data);
              2'b01: cacheline_get_data(set3[1],write_data);
@@ -421,7 +420,7 @@ begin
 end
 endtask
 
-task write_cacheline_tag(input [537:0] cacheline);
+task write_cacheline_tag(output [537:0] cacheline);
 begin
     cacheline[`addr_tag] = current_tag;
 end
@@ -554,6 +553,7 @@ always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
         init();    
+        state <= state_idle;
     end else begin
         case(state)
         state_idle: begin
@@ -652,6 +652,7 @@ begin
               end
         end
 		state_write_hit: begin
+		    if(is_empty) add_ptr();
 			update_flag();
 			s_wready_r <= 1'b0;
 			state <= state_idle;
@@ -702,7 +703,6 @@ assign m_awcache = 4'b0000;
 assign m_awprot = 3'b000;
 
 assign m_wid = 4'b0000;
-assign m_wready = 1'b1;
 assign m_wlast = m_wlast_r;
 assign m_wvalid = m_wvalid_r;
 assign m_wdata = m_wdata_r;
