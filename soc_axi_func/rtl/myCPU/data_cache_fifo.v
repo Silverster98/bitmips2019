@@ -624,6 +624,8 @@ begin
                     state <= state_write_uncache_wait_ram;
                     m_awaddr_r <= s_addr_r;
                     m_awvalid_r <= 1'b1;
+                    m_wvalid_r <= 1'b1;
+                    m_wdata_r <= s_wdata;
                 end
             end
         end
@@ -718,9 +720,7 @@ begin
 		state_write_uncache_wait_ram: begin
 		  if(m_awready) begin 
 		      m_awvalid_r <= 1'b0;
-		      m_wdata_r <= s_wdata;
-		      m_wvalid_r <= 1'b1;
-		      m_wlast_r <= 1'b1;
+		      m_wvalid_r <= 1'b0;
 		  end
 		  if(m_bvalid) begin
 		      m_wvalid_r <= 1'b0;
@@ -753,7 +753,7 @@ assign m_awcache = 4'b0000;
 assign m_awprot = 3'b000;
 
 assign m_wid = 4'b0000;
-assign m_wlast = m_wlast_r;
+assign m_wlast = 1'b1;
 assign m_wvalid = m_wvalid_r;
 assign m_wdata = m_wdata_r;
 assign m_wstrb = 4'b1111;
