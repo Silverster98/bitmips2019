@@ -50,21 +50,21 @@ assign arcache = 4'b0000;
 assign arprot = 3'b000;
 assign rready = 1'b1;
 
-assign araddr = data_ren ? data_araddr : inst_araddr;
+assign araddr = inst_ren ? inst_araddr : data_araddr;
 
 assign inst_arready = inst_ren ? arready : 1'b0;
-assign data_arready = data_ren ? arready : 1'b0;
+assign data_arready = inst_ren ? 1'b0 : arready;
 
 assign inst_rready = inst_ren ? rvalid : 1'b0; 
-assign data_rready = data_ren ? rvalid : 1'b0;
+assign data_rready = inst_ren ? 1'b0 : rvalid;
 
 assign inst_rlast = inst_ren ? rlast : 1'b0;
-assign data_rlast = data_ren ? rlast : 1'b0;
+assign data_rlast = inst_ren ? 1'b0 : rlast;
 
 assign inst_rdata = inst_ren ? rdata : inst_rdata;
-assign data_rdata = data_ren ? rdata : data_rdata;
+assign data_rdata = inst_ren ? data_rdata : rdata;
 
 assign inst_rvalid = inst_ren ? rvalid : 1'b0;
-assign data_rvalid = data_ren ? rvalid : 1'b0;
+assign data_rvalid = inst_ren ? 1'b0 : rvalid;
 
 endmodule

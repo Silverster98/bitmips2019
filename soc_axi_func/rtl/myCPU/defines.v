@@ -189,9 +189,8 @@
 `define ALUOP_BLTZ    8'b00111000
 
 //cache
-`define addr_tag          536:513
-`define valid_bit         0
-`define dirty_bit         537
+`define addr_tag       536:513
+`define dirty_bit      513
 `define addr0   	    512:481
 `define addr1   		480:449
 `define addr2   		448:417
