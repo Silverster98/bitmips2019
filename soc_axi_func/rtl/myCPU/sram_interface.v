@@ -62,6 +62,7 @@ end
 parameter[1:0] state_idle = 2'b00;
 parameter[1:0] state_req = 2'b01;
 parameter[1:0] state_wait = 2'b10;
+parameter[1:0] state_wait0 = 2'b11;
 reg[1:0] current_state, next_state;
 always @ (posedge clk) begin
     if (rst == `RST_ENABLE) begin
@@ -74,7 +75,7 @@ end
 always @ (*) begin
     case(current_state)
         state_idle: begin
-            next_state = state_req;
+//            next_state = state_req;
             inst_ren = 1'b0;
             data_ren = 1'b0;
             data_wen = 4'b0;
@@ -82,9 +83,20 @@ always @ (*) begin
             data_stall = 1'b1;
             data_wd = 32'b0;
             handle_data_t = 2'b00;
+            next_state = state_wait0;
+        end
+        state_wait0: begin
+            inst_ren = 1'b0;
+            data_ren = 1'b0;
+            data_wen = 4'b0;
+            inst_stall = 1'b1;
+            data_stall = 1'b1;
+            data_wd = 32'b0;
+            handle_data_t = handle_data_t;
+            next_state = state_req;
         end
         state_req: begin
-            if (!(flush == 1'b1)) begin
+            if (flush != 1'b1) begin
                 if (data_sram_ren == 1'b1 && handle_data == 2'b00) begin
                     inst_ren = 1'b0;
                     data_ren = 1'b1;
@@ -112,10 +124,11 @@ always @ (*) begin
                 inst_ren = 1'b0;
                 data_ren = 1'b0;
                 data_wen = 4'b0;
-                inst_stall = 1'b0;
-                data_stall = 1'b0;
+                inst_stall = 1'b1;
+                data_stall = 1'b1;
                 data_wd = 32'b0;
                 handle_data_t = 2'b00;
+                next_state = state_wait0;
             end
         end
         state_wait: begin
@@ -124,7 +137,7 @@ always @ (*) begin
                 inst_stall = 1'b0;
                 data_stall = 1'b0;
                 handle_data_t = 2'b00;
-                next_state = state_req;
+                next_state = state_wait0;
             end
             
             if (data_valid && handle_data == 2'b01) begin

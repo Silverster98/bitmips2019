@@ -107,6 +107,7 @@ reg [1:0]   set2_hit_ptr;
 reg [1:0]   set3_hit_ptr;
 reg [4:0]   state;
 reg [3:0]   cacheline_ptr;
+reg [3:0]   cacheline_write_ptr;
 reg         is_empty;
 reg         is_read;
 parameter [4:0] state_idle = 5'b00000;
@@ -132,8 +133,9 @@ parameter [4:0] state_read_hit_read_data = 5'b10011;
 
 task cacheline_byte_write_data(output [513:0] cacheline, input [3:0] wen, input [31:0] write_data);
 begin
+    if(hit || is_empty) cacheline_write_ptr = s_addr_r[5:2];
     if(wen[3] == 1'b1) begin
-    case(s_addr_r[5:2])
+    case(cacheline_write_ptr)
     4'h0:   cacheline[`addr_byte3_0]  =  write_data[31:24];
     4'h1:   cacheline[`addr_byte3_1]  =  write_data[31:24];
     4'h2:   cacheline[`addr_byte3_2]  =  write_data[31:24];
@@ -153,7 +155,7 @@ begin
     endcase
     end
     if(wen[2] == 1'b1) begin
-    case(s_addr_r[5:2])
+    case(cacheline_write_ptr)
     4'h0:   cacheline[`addr_byte2_0]  =  write_data[23:16];
     4'h1:   cacheline[`addr_byte2_1]  =  write_data[23:16];
     4'h2:   cacheline[`addr_byte2_2]  =  write_data[23:16];
@@ -173,7 +175,7 @@ begin
     endcase
     end
     if(wen[1] == 1'b1) begin
-    case(s_addr_r[5:2])
+    case(cacheline_write_ptr)
 	4'h0:   cacheline[`addr_byte1_0]  =  write_data[15:8];
     4'h1:   cacheline[`addr_byte1_1]  =  write_data[15:8];
     4'h2:   cacheline[`addr_byte1_2]  =  write_data[15:8];
@@ -193,7 +195,7 @@ begin
     endcase
     end
     if(wen[0] == 1'b1) begin
-    case(s_addr_r[5:2])
+    case(cacheline_write_ptr)
 	4'h0:   cacheline[`addr_byte0_0]  =  write_data[7:0];
     4'h1:   cacheline[`addr_byte0_1]  =  write_data[7:0];
     4'h2:   cacheline[`addr_byte0_2]  =  write_data[7:0];
@@ -212,6 +214,7 @@ begin
     4'hf:   cacheline[`addr_byte0_15] =  write_data[7:0];
     endcase
     end
+    cacheline_write_ptr = cacheline_write_ptr + 4'b1;
 end
 endtask
 
@@ -369,6 +372,7 @@ begin
     is_read = 1'b0;
     dirty = 1'b0;
     cacheline_ptr = 4'b0000;
+    cacheline_write_ptr = 4'b0000;
 end
 endtask
 
@@ -628,7 +632,7 @@ begin
         state_read_miss_wait_write_burst: begin
             m_awvalid_r <= 1'b0; 
             write_cacheline_to_ram(m_wdata_r);
-		    if(cacheline_ptr == 4'b0000) begin 
+		    if(cacheline_write_ptr == 4'b0000) begin 
 		        state <= state_read_miss_wait_bvalid;
 		        m_wlast_r <= 1'b1;
 		    end
@@ -701,7 +705,7 @@ begin
         state_write_miss_wait_write_burst: begin
             m_awvalid_r <= 1'b0; 
             write_cacheline_to_ram(m_wdata_r);
-		    if(cacheline_ptr == 4'b0000) begin 
+		    if(cacheline_write_ptr == 4'b0000) begin 
 		        state <= state_write_miss_wait_bvalid;
 		        m_wlast_r <= 1'b1;
 		    end
