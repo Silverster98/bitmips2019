@@ -52,7 +52,7 @@ module ex_mem(
     assign data_stall = stall[3];
     
     always @ (posedge clk) begin
-        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON || exe_stall == 1'b1) begin
+        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON) begin
             mem_pc <= `ZEROWORD32;
             mem_aluop <= 8'h00;
             mem_now_in_delayslot <= 1'b0;
@@ -72,6 +72,7 @@ module ex_mem(
             mem_cp0_write_data <= `ZEROWORD32;
             mem_mem_to_reg <= 1'b0;
             mem_ram_read_addr <= `ZEROWORD32;
+        end else if (exe_stall == 1'b1) begin
         end else begin
             if (data_stall == 1'b0) begin
                 mem_pc <= exe_pc;

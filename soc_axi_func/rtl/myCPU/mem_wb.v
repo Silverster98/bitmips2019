@@ -39,7 +39,7 @@ module mem_wb(
     assign data_stall = stall[3];
     
     always @ (posedge clk) begin
-        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON || data_stall == 1'b1) begin
+        if (rst == `RST_ENABLE || exception == `EXCEPTION_ON /*|| data_stall == 1'b1 || exe_stall == 1'b1*/) begin
             wb_regfile_write_enable <= 1'b0;
             wb_regfile_write_addr <= `ZEROWORD5;
             wb_regfile_write_data <= `ZEROWORD32;
@@ -51,6 +51,7 @@ module mem_wb(
             wb_cp0_write_addr <= `ZEROWORD5;
             wb_cp0_write_data <= `ZEROWORD32;
             wb_pc <= `ZEROWORD32;
+        end else if (data_stall == 1'b1 || exe_stall == 1'b1) begin
         end else begin
             wb_regfile_write_enable <= mem_regfile_write_enable;
             wb_regfile_write_addr <= mem_regfile_write_addr;

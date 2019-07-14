@@ -73,7 +73,17 @@ module ex(
     wire start, div_done, flag_unsigned, div_stall;
     assign start = (aluop_i == `ALUOP_DIV || aluop_i == `ALUOP_DIVU) ? 1 : 0;
     assign flag_unsigned = (aluop_i == `ALUOP_DIVU) ? 1 : 0;
-    assign div_stall = (aluop_i == `ALUOP_DIV || aluop_i == `ALUOP_DIVU) ? !div_done : 0;
+    
+    reg div_done_t;
+    assign div_stall = (aluop_i == `ALUOP_DIV || aluop_i == `ALUOP_DIVU) ? !div_done_t : 0;
+    /*ugly code*/
+    always @ (posedge div_done or pc_i) begin
+        if (div_done == 1) begin
+            div_done_t = 1'b1;
+        end else begin
+            div_done_t = 1'b0;
+        end
+    end
     
     
     assign hilo_data_forward = get_hilo_data_forward(hilo_data_i, hilo_read_addr_i,
