@@ -144,7 +144,11 @@ module mips_top(
     assign data_sram_wdata = mem_ram_write_data;
     assign ram_read_data = data_sram_rdata;
     
-    assign debug_wb_wen = 4'b0000/*(rst == `RST_ENABLE) ? 4'b0000 : {4{mem_wb_regfile_write_enable}}*/;
+    //assign debug_wb_wen = 4'b0000/*(rst == `RST_ENABLE) ? 4'b0000 : {4{mem_wb_regfile_write_enable}}*/;
+    wire stall_all;
+    assign stall_all = data_stall || exe_stall_request || inst_stall;
+    assign debug_wb_wen = (rst == `RST_ENABLE || stall_all == 1'b1) ? 4'b0000 : {4{mem_wb_regfile_write_enable}};
+    
     assign debug_wb_num = (rst == `RST_ENABLE) ? 5'b00000 : mem_wb_regfile_write_addr;
     assign debug_wb_data = (rst == `RST_ENABLE) ? 32'h00000000 : mem_wb_regfile_write_data;
 
