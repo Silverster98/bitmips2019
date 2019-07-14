@@ -60,10 +60,22 @@ reg [23:0] set3_1_addr;
 reg [23:0] set3_2_addr;
 reg [23:0] set3_3_addr;
 
-reg [513:0] set0[3:0];
-reg [513:0] set1[3:0];
-reg [513:0] set2[3:0];
-reg [513:0] set3[3:0];
+reg [513:0] set0_0;
+reg [513:0] set1_0;
+reg [513:0] set2_0;
+reg [513:0] set3_0;
+reg [513:0] set0_1;
+reg [513:0] set1_1;
+reg [513:0] set2_1;
+reg [513:0] set3_1;
+reg [513:0] set0_2;
+reg [513:0] set1_2;
+reg [513:0] set2_2;
+reg [513:0] set3_2;
+reg [513:0] set0_3;
+reg [513:0] set1_3;
+reg [513:0] set2_3;
+reg [513:0] set3_3;
 
 reg [3:0] set0_empty;
 reg [3:0] set1_empty;
@@ -107,7 +119,6 @@ reg [1:0]   set2_hit_ptr;
 reg [1:0]   set3_hit_ptr;
 reg [4:0]   state;
 reg [3:0]   cacheline_ptr;
-reg [3:0]   cacheline_write_ptr;
 reg         is_empty;
 reg         is_read;
 parameter [4:0] state_idle = 5'b00000;
@@ -130,12 +141,13 @@ parameter [4:0] state_write_miss_wait_write_tag = 5'b10000;
 parameter [4:0] state_read_miss_wait_write_tag = 5'b10001;
 parameter [4:0] state_write_hit_write_data = 5'b10010;
 parameter [4:0] state_read_hit_read_data = 5'b10011;
+parameter [4:0] state_write_miss_wait_finish_again = 5'b10100;
 
 task cacheline_byte_write_data(output [513:0] cacheline, input [3:0] wen, input [31:0] write_data);
 begin
-    if(hit || is_empty) cacheline_write_ptr = s_addr_r[5:2];
+    if(hit || is_empty) cacheline_ptr = s_addr[5:2];
     if(wen[3] == 1'b1) begin
-    case(cacheline_write_ptr)
+    case(cacheline_ptr)
     4'h0:   cacheline[`addr_byte3_0]  =  write_data[31:24];
     4'h1:   cacheline[`addr_byte3_1]  =  write_data[31:24];
     4'h2:   cacheline[`addr_byte3_2]  =  write_data[31:24];
@@ -155,7 +167,7 @@ begin
     endcase
     end
     if(wen[2] == 1'b1) begin
-    case(cacheline_write_ptr)
+    case(cacheline_ptr)
     4'h0:   cacheline[`addr_byte2_0]  =  write_data[23:16];
     4'h1:   cacheline[`addr_byte2_1]  =  write_data[23:16];
     4'h2:   cacheline[`addr_byte2_2]  =  write_data[23:16];
@@ -175,7 +187,7 @@ begin
     endcase
     end
     if(wen[1] == 1'b1) begin
-    case(cacheline_write_ptr)
+    case(cacheline_ptr)
 	4'h0:   cacheline[`addr_byte1_0]  =  write_data[15:8];
     4'h1:   cacheline[`addr_byte1_1]  =  write_data[15:8];
     4'h2:   cacheline[`addr_byte1_2]  =  write_data[15:8];
@@ -195,7 +207,7 @@ begin
     endcase
     end
     if(wen[0] == 1'b1) begin
-    case(cacheline_write_ptr)
+    case(cacheline_ptr)
 	4'h0:   cacheline[`addr_byte0_0]  =  write_data[7:0];
     4'h1:   cacheline[`addr_byte0_1]  =  write_data[7:0];
     4'h2:   cacheline[`addr_byte0_2]  =  write_data[7:0];
@@ -214,7 +226,7 @@ begin
     4'hf:   cacheline[`addr_byte0_15] =  write_data[7:0];
     endcase
     end
-    cacheline_write_ptr = cacheline_write_ptr + 4'b1;
+    cacheline_ptr = cacheline_ptr + 4'b1;
 end
 endtask
 
@@ -329,28 +341,28 @@ endtask
 task cache_write_data(input [3:0] wen, input [31:0] wdata);
     case(set)
     2'b00: case(set0_hit_ptr)
-           2'b00:cacheline_byte_write_data(set0[0],wen,wdata);
-           2'b01:cacheline_byte_write_data(set0[1],wen,wdata);
-           2'b10:cacheline_byte_write_data(set0[2],wen,wdata);
-           2'b11:cacheline_byte_write_data(set0[3],wen,wdata);
+           2'b00:cacheline_byte_write_data(set0_0,wen,wdata);
+           2'b01:cacheline_byte_write_data(set0_1,wen,wdata);
+           2'b10:cacheline_byte_write_data(set0_2,wen,wdata);
+           2'b11:cacheline_byte_write_data(set0_3,wen,wdata);
            endcase
     2'b01: case(set1_hit_ptr)
-           2'b00:cacheline_byte_write_data(set1[0],wen,wdata);
-           2'b01:cacheline_byte_write_data(set1[1],wen,wdata);
-           2'b10:cacheline_byte_write_data(set1[2],wen,wdata);
-           2'b11:cacheline_byte_write_data(set1[3],wen,wdata);
+           2'b00:cacheline_byte_write_data(set1_0,wen,wdata);
+           2'b01:cacheline_byte_write_data(set1_1,wen,wdata);
+           2'b10:cacheline_byte_write_data(set1_2,wen,wdata);
+           2'b11:cacheline_byte_write_data(set1_3,wen,wdata);
            endcase
     2'b10: case(set2_hit_ptr)
-           2'b00:cacheline_byte_write_data(set2[0],wen,wdata);
-           2'b01:cacheline_byte_write_data(set2[1],wen,wdata);
-           2'b10:cacheline_byte_write_data(set2[2],wen,wdata);
-           2'b11:cacheline_byte_write_data(set2[3],wen,wdata);
+           2'b00:cacheline_byte_write_data(set2_0,wen,wdata);
+           2'b01:cacheline_byte_write_data(set2_1,wen,wdata);
+           2'b10:cacheline_byte_write_data(set2_2,wen,wdata);
+           2'b11:cacheline_byte_write_data(set2_3,wen,wdata);
            endcase
     2'b11: case(set3_hit_ptr)
-           2'b00:cacheline_byte_write_data(set3[0],wen,wdata);
-           2'b01:cacheline_byte_write_data(set3[1],wen,wdata);
-           2'b10:cacheline_byte_write_data(set3[2],wen,wdata);
-           2'b11:cacheline_byte_write_data(set3[3],wen,wdata);
+           2'b00:cacheline_byte_write_data(set3_0,wen,wdata);
+           2'b01:cacheline_byte_write_data(set3_1,wen,wdata);
+           2'b10:cacheline_byte_write_data(set3_2,wen,wdata);
+           2'b11:cacheline_byte_write_data(set3_3,wen,wdata);
            endcase
     endcase
 endtask
@@ -370,9 +382,9 @@ begin
     set3_hit = 1'b0;
     hit = 1'b0;
     is_read = 1'b0;
+    is_empty = 1'b0;
     dirty = 1'b0;
     cacheline_ptr = 4'b0000;
-    cacheline_write_ptr = 4'b0000;
 end
 endtask
 
@@ -403,6 +415,7 @@ begin
     set1_empty = 4'b0000;
     set2_empty = 4'b0000;
     set3_empty = 4'b0000;
+    
     update_flag();
 end
 endtask
@@ -439,34 +452,34 @@ begin
     case(set)
     2'b00:begin 
          case(set0_ptr)
-             2'b00: cacheline_get_data(set0[0],write_data);
-             2'b01: cacheline_get_data(set0[1],write_data);
-             2'b10: cacheline_get_data(set0[2],write_data);
-             2'b11: cacheline_get_data(set0[3],write_data);
+             2'b00: cacheline_get_data(set0_0,write_data);
+             2'b01: cacheline_get_data(set0_1,write_data);
+             2'b10: cacheline_get_data(set0_2,write_data);
+             2'b11: cacheline_get_data(set0_3,write_data);
          endcase
          end
      2'b01:begin 
          case(set1_ptr)
-             2'b00: cacheline_get_data(set1[0],write_data);
-             2'b01: cacheline_get_data(set1[1],write_data);
-             2'b10: cacheline_get_data(set1[2],write_data);
-             2'b11: cacheline_get_data(set1[3],write_data);
+             2'b00: cacheline_get_data(set1_0,write_data);
+             2'b01: cacheline_get_data(set1_1,write_data);
+             2'b10: cacheline_get_data(set1_2,write_data);
+             2'b11: cacheline_get_data(set1_3,write_data);
          endcase
          end
      2'b10:begin 
          case(set2_ptr)
-             2'b00: cacheline_get_data(set2[0],write_data);
-             2'b01: cacheline_get_data(set2[1],write_data);
-             2'b10: cacheline_get_data(set2[2],write_data);
-             2'b11: cacheline_get_data(set2[3],write_data);
+             2'b00: cacheline_get_data(set2_0,write_data);
+             2'b01: cacheline_get_data(set2_1,write_data);
+             2'b10: cacheline_get_data(set2_2,write_data);
+             2'b11: cacheline_get_data(set2_3,write_data);
          endcase
          end
      2'b11:begin 
          case(set3_ptr)
-             2'b00: cacheline_get_data(set3[0],write_data);
-             2'b01: cacheline_get_data(set3[1],write_data);
-             2'b10: cacheline_get_data(set3[2],write_data);
-             2'b11: cacheline_get_data(set3[3],write_data);
+             2'b00: cacheline_get_data(set3_0,write_data);
+             2'b01: cacheline_get_data(set3_1,write_data);
+             2'b10: cacheline_get_data(set3_2,write_data);
+             2'b11: cacheline_get_data(set3_3,write_data);
          endcase
      end
      endcase
@@ -534,34 +547,34 @@ begin
 	case(set)
 	2'b00: begin
 		case(set0_hit_ptr)
-		2'b00: cacheline_get_data(set0[0],read_data);
-		2'b01: cacheline_get_data(set0[1],read_data);
-		2'b10: cacheline_get_data(set0[2],read_data);
-		2'b11: cacheline_get_data(set0[3],read_data);
+		2'b00: cacheline_get_data(set0_0,read_data);
+		2'b01: cacheline_get_data(set0_1,read_data);
+		2'b10: cacheline_get_data(set0_2,read_data);
+		2'b11: cacheline_get_data(set0_3,read_data);
 		endcase
 	end
 	2'b01: begin
 		case(set1_hit_ptr)
-		2'b00: cacheline_get_data(set1[0],read_data);
-		2'b01: cacheline_get_data(set1[1],read_data);
-		2'b10: cacheline_get_data(set1[2],read_data);
-		2'b11: cacheline_get_data(set1[3],read_data);
+		2'b00: cacheline_get_data(set1_0,read_data);
+		2'b01: cacheline_get_data(set1_1,read_data);
+		2'b10: cacheline_get_data(set1_2,read_data);
+		2'b11: cacheline_get_data(set1_3,read_data);
 		endcase
 	end
 	2'b10: begin
 		case(set2_hit_ptr)
-		2'b00: cacheline_get_data(set2[0],read_data);
-		2'b01: cacheline_get_data(set2[1],read_data);
-		2'b10: cacheline_get_data(set2[2],read_data);
-		2'b11: cacheline_get_data(set2[3],read_data);
+		2'b00: cacheline_get_data(set2_0,read_data);
+		2'b01: cacheline_get_data(set2_1,read_data);
+		2'b10: cacheline_get_data(set2_2,read_data);
+		2'b11: cacheline_get_data(set2_3,read_data);
 		endcase
 	end
 	2'b11: begin
 		case(set3_hit_ptr)
-		2'b00: cacheline_get_data(set3[0],read_data);
-		2'b01: cacheline_get_data(set3[1],read_data);
-		2'b10: cacheline_get_data(set3[2],read_data);
-		2'b11: cacheline_get_data(set3[3],read_data);
+		2'b00: cacheline_get_data(set3_0,read_data);
+		2'b01: cacheline_get_data(set3_1,read_data);
+		2'b10: cacheline_get_data(set3_2,read_data);
+		2'b11: cacheline_get_data(set3_3,read_data);
 		endcase
 	end
 	endcase
@@ -578,6 +591,22 @@ always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
         init();    
+        set0_0 <= 514'b0;
+        set1_0 <= 514'b0;
+        set2_0 <= 514'b0;
+        set3_0 <= 514'b0;
+        set0_1 <= 514'b0;
+        set1_1 <= 514'b0;
+        set2_1 <= 514'b0;
+        set3_1 <= 514'b0;
+        set0_2 <= 514'b0;
+        set1_2 <= 514'b0;
+        set2_2 <= 514'b0;
+        set3_2 <= 514'b0;
+        set0_3 <= 514'b0;
+        set1_3 <= 514'b0;
+        set2_3 <= 514'b0;
+        set3_3 <= 514'b0;
         state <= state_idle;
     end else begin
         case(state)
@@ -632,7 +661,7 @@ begin
         state_read_miss_wait_write_burst: begin
             m_awvalid_r <= 1'b0; 
             write_cacheline_to_ram(m_wdata_r);
-		    if(cacheline_write_ptr == 4'b0000) begin 
+		    if(cacheline_ptr == 4'b0000) begin 
 		        state <= state_read_miss_wait_bvalid;
 		        m_wlast_r <= 1'b1;
 		    end
@@ -705,7 +734,7 @@ begin
         state_write_miss_wait_write_burst: begin
             m_awvalid_r <= 1'b0; 
             write_cacheline_to_ram(m_wdata_r);
-		    if(cacheline_write_ptr == 4'b0000) begin 
+		    if(cacheline_ptr == 4'b0000) begin 
 		        state <= state_write_miss_wait_bvalid;
 		        m_wlast_r <= 1'b1;
 		    end
@@ -731,14 +760,18 @@ begin
              state <= state_write_miss_wait_finish;
         end
         state_write_miss_wait_finish: begin
-               find_cache();
-               if(hit == 1'b1) begin
+            find_cache();
+            state <= state_write_miss_wait_finish_again;
+        end   
+        state_write_miss_wait_finish_again: begin
+            if(hit == 1'b1) begin
 			     cache_write_data(s_awvalid,s_wdata);
                  s_wready_r = 1'b1;
                  state <= state_write_hit;
                  add_ptr();
-               end
-        end   
+            end
+        end
+        
         state_read_uncache_wait_ram: begin
             if(m_arready) m_arvalid_r <= 1'b0;
             if(m_rvalid == 1'b1) begin
