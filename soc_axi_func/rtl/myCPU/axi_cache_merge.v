@@ -8,7 +8,7 @@ module axi_cache_merge
     output [31:0] inst_rdata        ,
     output        inst_rlast        ,
     output        inst_rvalid       ,
-    output        inst_rready       ,
+    input         inst_rready       ,
 
     input  	      data_ren			,
     input  [31:0] data_araddr       ,
@@ -17,7 +17,7 @@ module axi_cache_merge
     output [31:0] data_rdata        ,
     output        data_rlast        ,
     output        data_rvalid       ,
-    output        data_rready       ,
+    input         data_rready       ,
 	
 	
     //ar
@@ -55,8 +55,8 @@ assign araddr = inst_ren ? inst_araddr : data_araddr;
 assign inst_arready = inst_ren ? arready : 1'b0;
 assign data_arready = inst_ren ? 1'b0 : arready;
 
-assign inst_rready = inst_ren ? rvalid : 1'b0; 
-assign data_rready = inst_ren ? 1'b0 : rvalid;
+//assign inst_rready = inst_ren ? rvalid : 1'b0; 
+//assign data_rready = inst_ren ? 1'b0 : rvalid;
 
 assign inst_rlast = inst_ren ? rlast : 1'b0;
 assign data_rlast = inst_ren ? 1'b0 : rlast;
