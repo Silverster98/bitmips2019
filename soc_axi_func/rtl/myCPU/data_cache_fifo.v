@@ -1976,6 +1976,10 @@ begin
     s_addr_r = s_addr;
 end
 
+task get_wdata();
+    m_wdata_r = s_wdata;
+endtask
+
 always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
@@ -2033,12 +2037,12 @@ begin
                     find_cache();
                     state <= state_write_hit_write_data;
                 end else begin
+                    get_wdata();
                     state <= state_write_uncache_wait_ram;
                     m_awaddr_r <= s_addr_r;
                     m_awvalid_r <= 1'b1;
                     m_wvalid_r <= 1'b1;
                     m_wlast_r <= 1'b1;
-                    m_wdata_r <= s_wdata;
                 end
             end
         end

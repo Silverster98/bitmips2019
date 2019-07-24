@@ -61,8 +61,8 @@ assign data_rready = inst_ren ? 1'b0 : rvalid;
 assign inst_rlast = inst_ren ? rlast : 1'b0;
 assign data_rlast = inst_ren ? 1'b0 : rlast;
 
-assign inst_rdata = inst_ren ? rdata : inst_rdata;
-assign data_rdata = inst_ren ? data_rdata : rdata;
+assign inst_rdata = inst_ren ? rdata : 32'b0;
+assign data_rdata = inst_ren ? 32'b0 : rdata;
 
 assign inst_rvalid = inst_ren ? rvalid : 1'b0;
 assign data_rvalid = inst_ren ? 1'b0 : rvalid;
