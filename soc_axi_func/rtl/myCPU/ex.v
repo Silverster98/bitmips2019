@@ -76,15 +76,20 @@ module ex(
     
     reg div_done_t;
     assign div_stall = (aluop_i == `ALUOP_DIV || aluop_i == `ALUOP_DIVU) ? !div_done_t : 0;
-    /*ugly code*/
-    always @ (posedge div_done or pc_i) begin
-        if (div_done == 1) begin
-            div_done_t = 1'b1;
-        end else begin
+    reg [31:0] pre_pc;
+    always @ (posedge clk) begin
+        if (rst == `RST_ENABLE) begin
+            pre_pc = 32'b0;
             div_done_t = 1'b0;
+        end else begin
+            if (pre_pc != pc_i) begin
+                pre_pc = pc_i;
+                div_done_t = 1'b0;
+            end else begin
+                if (div_done == 1'b1) div_done_t = 1'b1; 
+            end
         end
     end
-    
     
     assign hilo_data_forward = get_hilo_data_forward(hilo_data_i, hilo_read_addr_i,
                                                      bypass_mem_hi_write_enable_i, bypass_mem_hi_write_data_i,

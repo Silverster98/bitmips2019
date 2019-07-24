@@ -43,7 +43,7 @@ begin
     end else if (inst_ren == 1'b1) begin
         judge_is_cache = (inst_sram_addr[31:29] == 3'b101) ? 1'b0 : 1'b1;
     end else begin
-        judge_is_cache = 1'b1;
+        judge_is_cache = 1'b0;
     end
 end
 endfunction
