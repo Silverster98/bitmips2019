@@ -1,155 +1,211 @@
 `include "defines.v"
 
 module sram_interface(
-    input wire clk,
-    input wire rst,
-    input wire flush,
+    input wire          clk,
+    input wire          rst,
+    input wire          flush,
 
     // from and to cpu
-    input wire[31:0] inst_sram_addr,
-    output wire[31:0] inst_sram_rdata,
-    output reg inst_stall,
-
-    input wire[31:0] data_sram_addr,
-    input wire data_sram_ren,
-    output wire[31:0] data_sram_rdata,
-    input wire[3:0] data_sram_wen,
-    input wire[31:0] data_sram_wdata,
-    output reg data_stall,
+    input  wire [31:0]  inst_cpu_addr,
+    output reg  [31:0]  inst_cpu_rdata,
+    output reg          inst_cpu_stall,
+                             
+    input  wire [31:0]  data_cpu_addr,
+    input  wire         data_cpu_ren,
+    input  wire [3:0]   data_cpu_wen,
+    input  wire [31:0]  data_cpu_wdata,
+    output reg  [31:0]  data_cpu_rdata,
+    output reg          data_cpu_stall,
 
     // from and to cache
-    output wire[31:0] inst_addr,
-    output reg inst_ren,
-    input wire inst_valid,
-    input wire[31:0] inst_rd,
+    input  wire         inst_cache_ok,
+    input  wire [31:0]  inst_cache_rdata,
+    output wire [31:0]  inst_cache_addr,
+    output reg          inst_cache_ren,
     
-    output wire[31:0] data_addr,
-    output reg[3:0] data_wen,
-    output reg data_ren,
-    output reg[31:0] data_wd,
-    input wire data_valid,
-    input wire[31:0] data_rd,
+    input  wire         data_cache_read_ok,
+	input  wire			 data_cache_write_ok,
+    input  wire [31:0]  data_cache_rdata,
+    output wire [31:0]  data_cache_addr,
+    output reg  [3:0]   data_cache_wen,
+    output reg          data_cache_ren,
+    output reg  [31:0]  data_cache_wdata,
     
-    output wire is_cache
+    output reg          inst_cache_ena,
+    output reg          data_cache_ena,
+    output reg          is_inst_read,
+    output reg          is_data_read
 );
 
-assign is_cache = judge_is_cache(inst_ren, inst_sram_addr, data_ren, data_wen, data_sram_addr);
+assign inst_cache_addr = inst_cpu_addr[31:30] == 2'b10 ? {3'b000, inst_cpu_addr[28:0]} : inst_cpu_addr;
+assign data_cache_addr = data_cpu_addr[31:30] == 2'b10 ? {3'b000, data_cpu_addr[28:0]} : data_cpu_addr;
 
-function judge_is_cache(input inst_ren, input [31:0] inst_sram_addr, input data_ren, input [3:0] data_wen, 
-                        input [31:0] data_sram_addr);
-begin
-    if (data_ren == 1 || data_wen != 4'b0000) begin
-        judge_is_cache = (data_sram_addr[31:29] == 3'b101) ? 1'b0 : 1'b1;
-    end else if (inst_ren == 1'b1) begin
-        judge_is_cache = (inst_sram_addr[31:29] == 3'b101) ? 1'b0 : 1'b1;
+parameter[2:0] state_idle = 3'b00;
+parameter[2:0] state_prereq = 3'b001;
+parameter[2:0] state_req = 3'b010;
+parameter[2:0] state_wait_inst_read = 3'b011;
+parameter[2:0] state_wait_data_read = 3'b100;
+parameter[2:0] state_wait_data_write = 3'b101;
+reg[2:0] state;
+
+reg [31:0] dcache_rdata_buf;
+reg [31:0] icache_rdata_buf;
+
+reg data_write_ok_buf;
+reg inst_ok_buf;
+
+always @(*) begin
+    if(rst == `RST_ENABLE) begin
+        inst_cpu_stall = 1'b0;
+        inst_cpu_rdata = 32'b0;
+        data_cpu_stall = 1'b0;
+        data_cpu_rdata = 32'b0;
     end else begin
-        judge_is_cache = 1'b0;
-    end
-end
-endfunction
-
-reg[31:0] inst_buf, data_buf;
-
-assign inst_addr = inst_sram_addr[31:30] == 2'b10 ? {3'b000, inst_sram_addr[28:0]} : inst_sram_addr;
-assign data_addr = data_sram_addr[31:30] == 2'b10 ? {3'b000, data_sram_addr[28:0]} : data_sram_addr;
-
-reg[1:0] handle_data; // 00 is common, 01 is wait for data, 10 is data ok
-reg[1:0] handle_data_t;
-always @(posedge clk) begin
-    handle_data = handle_data_t;
-end
-
-parameter[1:0] state_idle = 2'b00;
-parameter[1:0] state_req = 2'b01;
-parameter[1:0] state_wait = 2'b10;
-parameter[1:0] state_wait0 = 2'b11;
-reg[1:0] current_state, next_state;
-always @ (posedge clk) begin
-    if (rst == `RST_ENABLE) begin
-        current_state = state_idle;
-    end else begin
-        current_state = next_state;
-    end
-end
-
-always @ (*) begin
-    case(current_state)
+    case(state)
         state_idle: begin
-//            next_state = state_req;
-            inst_ren = 1'b0;
-            data_ren = 1'b0;
-            data_wen = 4'b0;
-            inst_stall = 1'b1;
-            data_stall = 1'b1;
-            data_wd = 32'b0;
-            handle_data_t = 2'b00;
-            next_state = state_wait0;
+            inst_cpu_stall = 1'b1;
+            inst_cpu_rdata = 32'b0;
+            data_cpu_stall = 1'b1;
+            data_cpu_rdata = 32'b0;
         end
-        state_wait0: begin
-            inst_ren = 1'b0;
-            data_ren = 1'b0;
-            data_wen = 4'b0;
-            inst_stall = 1'b1;
-            data_stall = 1'b1;
-            data_wd = 32'b0;
-            handle_data_t = handle_data_t;
-            next_state = state_req;
+        state_prereq: begin
+            inst_cpu_stall = 1'b1;
+            inst_cpu_rdata = 32'b0;
+            data_cpu_stall = 1'b1;
+            data_cpu_rdata = 32'b0;
         end
         state_req: begin
-            if (flush != 1'b1) begin
-                if (data_sram_ren == 1'b1 && handle_data == 2'b00) begin
-                    inst_ren = 1'b0;
-                    data_ren = 1'b1;
-                    data_wen = 4'b0;
-                    data_wd = 32'b0;
-                    handle_data_t = 2'b01;
-                end else if (data_sram_wen != 4'b0 && handle_data == 2'b00) begin
-                    inst_ren = 1'b0;
-                    data_ren = 1'b0;
-                    data_wen = data_sram_wen;
-                    data_wd = data_sram_wdata;
-                    handle_data_t = 2'b01;
-                end else begin
-                    inst_ren = 1'b1;
-                    data_ren = 1'b0;
-                    data_wen = 4'b0;
-                    data_wd = 32'b0;
-                    handle_data_t = 2'b00;
-                end
-                
-                inst_stall = 1'b1;
-                data_stall = 1'b1;
-                next_state = state_wait;
+            if(flush) begin
+                inst_cpu_stall = 1'b0;
+                inst_cpu_rdata = 32'b0;
+                data_cpu_stall = 1'b0;
+                data_cpu_rdata = 32'b0;
             end else begin
-                inst_ren = 1'b0;
-                data_ren = 1'b0;
-                data_wen = 4'b0;
-                inst_stall = 1'b1;
-                data_stall = 1'b1;
-                data_wd = 32'b0;
-                handle_data_t = 2'b00;
-                next_state = state_wait0;
+                inst_cpu_stall = 1'b1;
+                inst_cpu_rdata = 32'b0;
+                data_cpu_stall = 1'b1;
+                data_cpu_rdata = 32'b0;
+            end 
+        end
+        state_wait_inst_read: begin
+            if(inst_cache_ok) begin
+                inst_cpu_stall = 1'b0;
+                inst_cpu_rdata = inst_cache_rdata;
+                data_cpu_stall = 1'b0;
+                data_cpu_rdata = dcache_rdata_buf;
+             end else begin
+                 inst_cpu_stall = 1'b1;
+                 inst_cpu_rdata = 32'b0;
+                 data_cpu_stall = 1'b1;
+                 data_cpu_rdata = 32'b0;
+             end
+        end
+        state_wait_data_read: begin
+            if(data_cache_read_ok) begin
+                inst_cpu_stall = 1'b1;
+                inst_cpu_rdata = 32'b0;
+                data_cpu_stall = 1'b1;
+                data_cpu_rdata = 32'b0;
+            end else begin
+                inst_cpu_stall = 1'b1;
+                inst_cpu_rdata = 32'b0;
+                data_cpu_stall = 1'b1;
+                data_cpu_rdata = 32'b0;
             end
         end
-        state_wait: begin
-            if (inst_valid && (handle_data == 2'b00 || handle_data == 2'b10)) begin
-                inst_buf = inst_rd;
-                inst_stall = 1'b0;
-                data_stall = 1'b0;
-                handle_data_t = 2'b00;
-                next_state = state_wait0;
-            end
-            
-            if (data_valid && handle_data == 2'b01) begin
-                data_buf = data_rd;
-                handle_data_t = 2'b10;
-                next_state = state_req;
-            end
-        end
+        state_wait_data_write: begin
+            inst_cpu_stall = 1'b1;
+            inst_cpu_rdata = 32'b0;
+            data_cpu_stall = 1'b1;
+            data_cpu_rdata = 32'b0;
+         end
+         default: begin
+            inst_cpu_stall = 1'b0;
+            inst_cpu_rdata = 32'b0;
+            data_cpu_stall = 1'b0;
+            data_cpu_rdata = 32'b0;
+         end
     endcase
+    end
 end
 
-assign inst_sram_rdata = inst_buf;
-assign data_sram_rdata = data_buf;
+always @ (posedge clk) begin
+    if(rst == `RST_ENABLE) begin
+        state <= state_idle;
+        data_write_ok_buf <= 1'b0;
+        inst_ok_buf <= 1'b0;
+        dcache_rdata_buf <= 32'b0;
+        icache_rdata_buf <= 32'b0;
+        is_inst_read <= 1'b0;
+        is_data_read <= 1'b0;
+    end else begin
+    case(state)
+        state_idle: begin
+            state <= state_prereq;
+        end
+        state_prereq: begin
+            state <= state_req;
+            data_cache_wen <= 4'b0000;
+            inst_cache_ren <= 1'b0;
+            data_cache_ren <= 1'b0; 
+            is_inst_read <= 1'b0;
+            is_data_read <= 1'b0;
+            inst_ok_buf <= 1'b0;
+            data_write_ok_buf <= 1'b0;
+        end
+        state_req: begin
+            if(!flush) begin
+                if(data_cpu_ren == 1'b1) begin
+                    data_cache_ren <= 1'b1;
+                    is_data_read <= 1'b1;
+                    data_cache_ena <= data_cpu_addr[31:29] == 3'b101 ? 1'b0 : 1'b1;
+                    inst_cache_ena <= inst_cpu_addr[31:29] == 3'b101 ? 1'b0 : 1'b1;
+                    state <= state_wait_data_read;
+                end else if(data_cpu_wen != 4'b0000) begin
+                    data_cache_wen <= data_cpu_wen;
+                    is_data_read <= 1'b1;
+                    inst_cache_ena <= inst_cpu_addr[31:29] == 3'b101 ? 1'b0 : 1'b1;
+                    data_cache_ena <= data_cpu_addr[31:29] == 3'b101 ? 1'b0 : 1'b1;
+                    data_cache_wdata <= data_cpu_wdata;
+                    state <= state_wait_data_write;
+                end else begin
+                    is_inst_read <= 1'b1;
+                    inst_cache_ren <= 1'b1;
+                    inst_cache_ena <= inst_cpu_addr[31:29] == 3'b101 ? 1'b0 : 1'b1;
+                    data_cache_ena <= 1'b0;
+                    state <= state_wait_inst_read;
+                end
+            end
+        end
+        state_wait_inst_read: begin
+            inst_cache_ren <= 1'b0;
+            if(inst_cache_ok) begin
+                state <= state_prereq;
+            end
+        end
+        state_wait_data_read: begin
+            data_cache_ren <= 1'b0;
+            if(data_cache_read_ok) begin
+                state <= state_wait_inst_read;
+                inst_cache_ren <= 1'b1;
+                is_inst_read <= 1'b1;
+                is_data_read <= 1'b0;
+                dcache_rdata_buf <= data_cache_rdata;
+            end
+        end
+        state_wait_data_write: begin
+            if(data_cache_write_ok) begin 
+                data_cache_wen <= 4'b0000; //change here cause data_cache_fifo use this signal in wait state
+                state <= state_wait_inst_read;
+                inst_cache_ren <= 1'b1;
+                is_inst_read <= 1'b1;
+                is_data_read <= 1'b0;
+            end
+        end
+        
+        
+    endcase
+    end
+end
 
 endmodule

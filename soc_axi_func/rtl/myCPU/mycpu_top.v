@@ -77,10 +77,10 @@ module mycpu_top
     input         bvalid       ,
     output        bready       ,
     
-   (*mark_debug = "true"*) output [31:0] debug_wb_pc       , 
-   (*mark_debug = "true"*) output [3:0]  debug_wb_rf_wen   ,
-   (*mark_debug = "true"*) output [4:0]  debug_wb_rf_wnum  ,
-   (*mark_debug = "true"*) output [31:0] debug_wb_rf_wdata 
+   output [31:0] debug_wb_pc       , 
+   output [3:0]  debug_wb_rf_wen   ,
+   output [4:0]  debug_wb_rf_wnum  ,
+   output [31:0] debug_wb_rf_wdata 
 );
 
 wire        time_int_out;
@@ -132,34 +132,48 @@ wire        data_ren;
 wire [31:0] data_wd;
 wire 	    data_valid;
 wire [31:0] data_rd;
-wire        is_cache;
+
+wire data_valid_r;
+wire data_valid_w;
+wire inst_cache_ena;
+wire data_cache_ena;
+wire is_inst_read;
+wire is_data_read;
 
 sram_interface sram_interface_module
 (
 .clk(aclk),
 .rst(aresetn),
 .flush(flush),
-.inst_sram_addr(inst_sram_addr),
-.inst_sram_rdata(inst_sram_rdata),
-.inst_stall(inst_stall),
-.data_sram_addr(data_sram_addr),
-.data_sram_ren(data_sram_ren),
-.data_sram_rdata(data_sram_rdata),
-.data_sram_wen(data_sram_wen),
-.data_sram_wdata(data_sram_wdata),
-.data_stall(data_stall),
 
-.inst_addr(inst_addr),
-.inst_ren(inst_ren),
-.inst_valid(inst_valid),
-.inst_rd(inst_rd),
-.data_addr(data_addr),
-.data_wen(data_wen),
-.data_ren(data_ren),
-.data_wd(data_wd),
-.data_valid(data_valid),
-.data_rd(data_rd),
-.is_cache(is_cache)
+.inst_cpu_addr(inst_sram_addr),
+.inst_cpu_rdata(inst_sram_rdata),
+.inst_cpu_stall(inst_stall),
+    
+.data_cpu_addr(data_sram_addr),
+.data_cpu_ren(data_sram_ren),
+.data_cpu_wen(data_sram_wen),
+.data_cpu_wdata(data_sram_wdata),
+.data_cpu_rdata(data_sram_rdata),
+.data_cpu_stall(data_stall),
+
+.inst_cache_ok(inst_valid),
+.inst_cache_rdata(inst_rd),
+.inst_cache_addr(inst_addr),
+.inst_cache_ren(inst_ren),
+
+.data_cache_read_ok(data_valid_r),
+.data_cache_write_ok(data_valid_w),
+.data_cache_rdata(data_rd),
+.data_cache_addr(data_addr),
+.data_cache_wen(data_wen),
+.data_cache_ren(data_ren),
+.data_cache_wdata(data_wd),
+
+.inst_cache_ena(inst_cache_ena),
+.data_cache_ena(data_cache_ena),
+.is_inst_read(is_inst_read),
+.is_data_read(is_data_read)
 );
 
 wire [31:0] inst_cache_bridge_araddr;
@@ -182,7 +196,7 @@ inst_cache_fifo  inst_cache_fifo_module
 (
 .rst            (aresetn),
 .clk            (aclk),
-.cache_ena      (is_cache),
+.cache_ena      (inst_cache_ena),
 .m_araddr       (inst_cache_bridge_araddr),
 .m_arvalid      (inst_cache_bridge_arvalid),
 .m_arready      (inst_cache_bridge_arready),
@@ -198,14 +212,11 @@ inst_cache_fifo  inst_cache_fifo_module
 .s_rvalid       (inst_valid)
 );
 
-wire data_valid_r;
-wire data_valid_w;
-
 data_cache_fifo data_cache_fifo_module
 (
 .clk            (aclk),
 .rst            (aresetn),
-.cache_ena      (is_cache),
+.cache_ena      (data_cache_ena),
 
 .m_araddr       (data_cache_bridge_araddr),
 .m_arvalid      (data_cache_bridge_arvalid),
@@ -245,12 +256,11 @@ data_cache_fifo data_cache_fifo_module
 .s_wready       (data_valid_w)
 );
 
-assign data_valid = data_valid_r || data_valid_w;
-
 axi_cache_merge axi_cache_merge_module
 (
-.cache_ena      (is_cache),
-.inst_ren	   (inst_ren),
+.inst_cache_ena(inst_cache_ena),
+.data_cache_ena(data_cache_ena),
+.inst_ren	   (is_inst_read),
 .inst_araddr   (inst_cache_bridge_araddr),
 .inst_arvalid  (inst_cache_bridge_arvalid),
 .inst_arready  (inst_cache_bridge_arready),         
@@ -259,7 +269,7 @@ axi_cache_merge axi_cache_merge_module
 .inst_rready   (inst_cache_bridge_rready),
 .inst_rvalid   (inst_cache_bridge_rvalid),
 
-.data_ren	   (data_ren),
+.data_ren	   (is_data_read),
 .data_araddr   (data_cache_bridge_araddr),
 .data_arvalid  (data_cache_bridge_arvalid),
 .data_arready  (data_cache_bridge_arready),         

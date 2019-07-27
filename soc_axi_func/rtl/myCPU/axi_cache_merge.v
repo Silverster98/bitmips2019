@@ -1,6 +1,7 @@
 module axi_cache_merge
 (
-    input         cache_ena         ,
+    input         inst_cache_ena    ,     
+    input         data_cache_ena    ,
 	input 	      inst_ren			,
     input  [31:0] inst_araddr       ,
     input         inst_arvalid      ,
@@ -41,10 +42,10 @@ module axi_cache_merge
 );
 
 assign arvalid = data_arvalid | inst_arvalid;
-assign arlen = cache_ena ? 8'h0f:8'h00;
+assign arlen = inst_ren ? (inst_cache_ena ? 8'h0f : 8'h00) : (data_ren ? (data_cache_ena ? 8'h0f : 8'h00) : 8'h00);
 assign arid = 4'b0000;
 assign arsize = 3'b010;
-assign arburst = cache_ena ? 2'b01:2'b00;
+assign arburst = inst_ren ? (inst_cache_ena ? 2'b01 : 2'b00) : (data_ren ? (data_cache_ena ? 2'b01: 2'b00) : 2'b00);
 assign arlock = 2'b00;
 assign arcache = 4'b0000;
 assign arprot = 3'b000;
