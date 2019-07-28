@@ -138,6 +138,8 @@ always @ (posedge clk) begin
         icache_rdata_buf <= 32'b0;
         is_inst_read <= 1'b0;
         is_data_read <= 1'b0;
+        inst_cache_ena <= 1'b0;
+        data_cache_ena <= 1'b0;
     end else begin
     case(state)
         state_idle: begin

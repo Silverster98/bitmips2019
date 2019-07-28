@@ -2119,10 +2119,11 @@ begin
 		  if(m_awready) begin 
 		      m_awvalid_r <= 1'b0;
 		      m_wvalid_r <= 1'b0;
+		      m_wlast_r <= 1'b0;
 		  end
 		  if(m_bvalid) begin
 		      m_wvalid_r <= 1'b0;
-		      m_wlast_r <= 1'b0;
+		      //m_wlast_r <= 1'b0;
 		      state <= state_write_uncache_wait_finish;
 		      s_wready_r <= 1'b1;
 		   end
@@ -2204,7 +2205,21 @@ assign m_awaddr = m_awaddr_r;
 assign m_awvalid = m_awvalid_r;
 assign m_awlen = cache_ena ? 8'h0f:8'h00;
 assign m_awid = 4'b0000;
-assign m_awsize = 3'b010;
+function [2:0]get_awsize(input cache_ena, input s_awvalid);
+begin
+    if(cache_ena) begin
+        get_awsize = 3'b010;
+    end else begin
+        case(s_awvalid)
+        4'b1111: get_awsize = 3'b010;
+        4'b1100,4'b0011: get_awsize = 3'b001;
+        4'b0001,4'b0010,4'b0100,4'b1000: get_awsize = 3'b000;
+        default: get_awsize = 3'b000; 
+        endcase
+    end
+end
+endfunction
+assign m_awsize = get_awsize(cache_ena,s_awvalid);
 assign m_awburst = cache_ena ? 2'b01:2'b00;
 assign m_awlock = 2'b00;
 assign m_awcache = 4'b0000;
@@ -2214,7 +2229,8 @@ assign m_wid = 4'b0000;
 assign m_wlast = m_wlast_r;
 assign m_wvalid = m_wvalid_r;
 assign m_wdata = m_wdata_r;
-assign m_wstrb = 4'b1111;
+assign m_wstrb = cache_ena ? 4'b1111 : s_awvalid;
+//assign m_wstrb = 4'b1111;
 
 assign m_bready = 1'b1;
 

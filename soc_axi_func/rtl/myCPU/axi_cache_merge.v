@@ -42,6 +42,12 @@ module axi_cache_merge
 );
 
 assign arvalid = data_arvalid | inst_arvalid;
+/*function [7:0] get_arlen(input inst_ren,input data_ren,input inst_cache_ena,input data_cache_ena);
+begin
+    if((inst_ren && inst_cache_ena)||(data_ren && data_cache_ena)) get_arlen = 8'h0f;
+    else get_arlen = 8'h00; 
+end
+endfunction*/
 assign arlen = inst_ren ? (inst_cache_ena ? 8'h0f : 8'h00) : (data_ren ? (data_cache_ena ? 8'h0f : 8'h00) : 8'h00);
 assign arid = 4'b0000;
 assign arsize = 3'b010;
