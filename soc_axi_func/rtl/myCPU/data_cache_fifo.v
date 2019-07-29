@@ -2252,26 +2252,26 @@ begin
     end
     2'b01: begin
         case(set1_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set1_0_addr, 2'b01, 6'b0000}; end
-        2'b01: begin get_set_tag_addr = {set1_1_addr, 2'b01, 6'b0000}; end
-        2'b10: begin get_set_tag_addr = {set1_2_addr, 2'b01, 6'b0000}; end
-        2'b11: begin get_set_tag_addr = {set1_3_addr, 2'b01, 6'b0000}; end
+        2'b00: begin get_set_tag_addr = {set1_0_addr, 2'b01, 6'b000000}; end
+        2'b01: begin get_set_tag_addr = {set1_1_addr, 2'b01, 6'b000000}; end
+        2'b10: begin get_set_tag_addr = {set1_2_addr, 2'b01, 6'b000000}; end
+        2'b11: begin get_set_tag_addr = {set1_3_addr, 2'b01, 6'b000000}; end
         endcase
     end
     2'b10: begin
-        case(set0_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set2_0_addr, 2'b10, 6'b0000}; end
-        2'b01: begin get_set_tag_addr = {set2_1_addr, 2'b10, 6'b0000}; end
-        2'b10: begin get_set_tag_addr = {set2_2_addr, 2'b10, 6'b0000}; end
-        2'b11: begin get_set_tag_addr = {set2_3_addr, 2'b10, 6'b0000}; end
+        case(set2_hit_ptr)
+        2'b00: begin get_set_tag_addr = {set2_0_addr, 2'b10, 6'b000000}; end
+        2'b01: begin get_set_tag_addr = {set2_1_addr, 2'b10, 6'b000000}; end
+        2'b10: begin get_set_tag_addr = {set2_2_addr, 2'b10, 6'b000000}; end
+        2'b11: begin get_set_tag_addr = {set2_3_addr, 2'b10, 6'b000000}; end
         endcase
     end
     2'b11: begin
-        case(set0_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set3_0_addr, 2'b11, 6'b0000}; end
-        2'b01: begin get_set_tag_addr = {set3_1_addr, 2'b11, 6'b0000}; end
-        2'b10: begin get_set_tag_addr = {set3_2_addr, 2'b11, 6'b0000}; end
-        2'b11: begin get_set_tag_addr = {set3_3_addr, 2'b11, 6'b0000}; end
+        case(set3_hit_ptr)
+        2'b00: begin get_set_tag_addr = {set3_0_addr, 2'b11, 6'b000000}; end
+        2'b01: begin get_set_tag_addr = {set3_1_addr, 2'b11, 6'b000000}; end
+        2'b10: begin get_set_tag_addr = {set3_2_addr, 2'b11, 6'b000000}; end
+        2'b11: begin get_set_tag_addr = {set3_3_addr, 2'b11, 6'b000000}; end
         endcase
     end
     endcase
