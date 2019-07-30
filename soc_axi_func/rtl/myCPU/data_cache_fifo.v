@@ -2015,7 +2015,7 @@ begin
                             m_awaddr_r <=  get_set_tag_addr(s_addr_r);//{s_addr_r[31:6],6'b00_0000}; // 
                             write_cacheline_to_ram(m_wdata_r);
                             m_awvalid_r <= 1'b1;
-                            //m_wvalid_r <= 1'b1;
+                            m_wvalid_r <= 1'b1;
                         end else begin
                             state <= state_read_miss_wait_read_burst;
                             m_arvalid_r <= 1'b1;
@@ -2057,7 +2057,7 @@ begin
                     m_awaddr_r <= get_set_tag_addr(s_addr_r);  // 
                     write_cacheline_to_ram(m_wdata_r);
                     m_awvalid_r <= 1'b1;
-                    //m_wvalid_r <= 1'b1;
+                    m_wvalid_r <= 1'b1;
                 end else begin
                     state <= state_write_miss_wait_read_burst;
                     m_arvalid_r <= 1'b1;
@@ -2066,14 +2066,15 @@ begin
             end
         end
         state_write_miss_wait_write_burst: begin
-            if(m_awready) begin m_awvalid_r <= 1'b0; m_wvalid_r <= 1'b1; end // need wait awready?
-			if(m_wready) begin
+            if(m_awready) begin m_awvalid_r = 1'b0; end // need wait awready?
+			if(m_wready && m_awvalid_r == 1'b0) begin
 				write_cacheline_to_ram(m_wdata_r);
 				if(cacheline_ptr == 4'b0000) begin 
 				state <= state_write_miss_wait_bvalid;
 				m_wlast_r <= 1'b1;
 				end
 			end
+        end
         state_write_miss_wait_bvalid: begin
             if(m_wready) begin
 				m_wlast_r <= 1'b0;
@@ -2136,12 +2137,12 @@ begin
 		
         /* read cache*/
         state_read_miss_wait_write_burst: begin
-			if(m_awready) begin m_awvalid_r <= 1'b0; m_wvalid_r <= 1'b1; end// need wait awrewady?
-			if(m_wready) begin
+			if(m_awready) begin m_awvalid_r = 1'b0; end// need wait awrewady?
+			if(m_wready && m_awvalid_r == 1'b0) begin
 				write_cacheline_to_ram(m_wdata_r);
 				if(cacheline_ptr == 4'b0000) begin 
-				state <= state_read_miss_wait_bvalid;
-				m_wlast_r <= 1'b1;
+				    state <= state_read_miss_wait_bvalid;
+				    m_wlast_r <= 1'b1;
 				end
 			end
 		end
@@ -2209,7 +2210,7 @@ assign m_awaddr = m_awaddr_r;
 assign m_awvalid = m_awvalid_r;
 assign m_awlen = cache_ena ? 8'h0f:8'h00;
 assign m_awid = 4'b0000;
-function [2:0]get_awsize(input cache_ena, input s_awvalid);
+function [2:0]get_awsize(input cache_ena, input [3:0]s_awvalid);
 begin
     if(cache_ena) begin
         get_awsize = 3'b010;
