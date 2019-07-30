@@ -99,7 +99,6 @@ reg [31:0]  m_wdata_r;
 reg         m_wlast_r;
 reg         s_wready_r;
 
-reg         tag;
 reg [1:0]   set;
 reg         bus_addr_ok;
 reg [31:0]  hit_cache_data;
@@ -1799,7 +1798,6 @@ endtask
 
 task update_flag();
 begin
-    tag = 1'b0;
     set0_hit = 1'b0;
     set1_hit = 1'b0;
     set2_hit = 1'b0;
@@ -1877,7 +1875,6 @@ endtask
 
 task write_current_tag();
 begin
-    tag = 1'b1;
     case(set)
 		2'b00: begin
 			case(set0_hit_ptr)
