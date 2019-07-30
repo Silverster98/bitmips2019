@@ -2018,7 +2018,7 @@ begin
                             m_awaddr_r <=  get_set_tag_addr(s_addr_r);//{s_addr_r[31:6],6'b00_0000}; // 
                             write_cacheline_to_ram(m_wdata_r);
                             m_awvalid_r <= 1'b1;
-                            m_wvalid_r <= 1'b1;
+                            //m_wvalid_r <= 1'b1;
                         end else begin
                             state <= state_read_miss_wait_read_burst;
                             m_arvalid_r <= 1'b1;
@@ -2060,7 +2060,7 @@ begin
                     m_awaddr_r <= get_set_tag_addr(s_addr_r);  // 
                     write_cacheline_to_ram(m_wdata_r);
                     m_awvalid_r <= 1'b1;
-                    m_wvalid_r <= 1'b1;
+                    //m_wvalid_r <= 1'b1;
                 end else begin
                     state <= state_write_miss_wait_read_burst;
                     m_arvalid_r <= 1'b1;
@@ -2069,17 +2069,20 @@ begin
             end
         end
         state_write_miss_wait_write_burst: begin
-            m_awvalid_r <= 1'b0; // need wait awrewady?
-            write_cacheline_to_ram(m_wdata_r);
-		    if(cacheline_ptr == 4'b0000) begin 
-		        state <= state_write_miss_wait_bvalid;
-		        m_wlast_r <= 1'b1;
-		    end
-		end
+            if(m_awready) begin m_awvalid_r <= 1'b0; m_wvalid_r <= 1'b1; end // need wait awready?
+			if(m_wready) begin
+				write_cacheline_to_ram(m_wdata_r);
+				if(cacheline_ptr == 4'b0000) begin 
+				state <= state_write_miss_wait_bvalid;
+				m_wlast_r <= 1'b1;
+				end
+			end
         state_write_miss_wait_bvalid: begin
-            m_wlast_r <= 1'b0;
-            m_wvalid_r <= 1'b0;
-            if(m_bvalid == 1'b1) begin
+            if(m_wready) begin
+				m_wlast_r <= 1'b0;
+				m_wvalid_r <= 1'b0;
+            end 
+			if(m_bvalid == 1'b1) begin
                 state <= state_write_miss_wait_read_burst;
                 m_arvalid_r <= 1'b1;
                 m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
@@ -2136,21 +2139,25 @@ begin
 		
         /* read cache*/
         state_read_miss_wait_write_burst: begin
-            m_awvalid_r <= 1'b0; 
-            write_cacheline_to_ram(m_wdata_r);
-		    if(cacheline_ptr == 4'b0000) begin 
-		        state <= state_read_miss_wait_bvalid;
-		        m_wlast_r <= 1'b1;
-		    end
+			if(m_awready) begin m_awvalid_r <= 1'b0; m_wvalid_r <= 1'b1; end// need wait awrewady?
+			if(m_wready) begin
+				write_cacheline_to_ram(m_wdata_r);
+				if(cacheline_ptr == 4'b0000) begin 
+				state <= state_read_miss_wait_bvalid;
+				m_wlast_r <= 1'b1;
+				end
+			end
 		end
         state_read_miss_wait_bvalid: begin
-            m_wlast_r <= 1'b0;
-            m_wvalid_r <= 1'b0;
             if(m_bvalid == 1'b1) begin
                 state <= state_read_miss_wait_read_burst;
                 m_arvalid_r <= 1'b1;
                 m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
             end
+			if(m_wready) begin
+				m_wlast_r <= 1'b0;
+				m_wvalid_r <= 1'b0;
+            end 
         end
         state_read_miss_wait_read_burst: begin
             if(m_arready) m_arvalid_r <= 1'b0;
