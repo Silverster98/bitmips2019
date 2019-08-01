@@ -8,3 +8,6 @@ mycpu.hw
 mycpu.sim
 mycpu.runs
 mycpu.ip_user_files
+perf_test_v0.01/soc_axi_perf/rtl/xilinx_ip
+perf_test_v0.01/soft
+cpu132_gettrace
