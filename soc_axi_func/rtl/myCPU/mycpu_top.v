@@ -140,6 +140,8 @@ wire data_cache_ena;
 wire is_inst_read;
 wire is_data_read;
 
+wire is_flush;
+
 sram_interface sram_interface_module
 (
 .clk(aclk),
@@ -173,7 +175,9 @@ sram_interface sram_interface_module
 .inst_cache_ena(inst_cache_ena),
 .data_cache_ena(data_cache_ena),
 .is_inst_read(is_inst_read),
-.is_data_read(is_data_read)
+.is_data_read(is_data_read),
+
+.is_flush(is_flush)
 );
 
 wire [31:0] inst_cache_bridge_araddr;
@@ -196,6 +200,7 @@ inst_cache_fifo  inst_cache_fifo_module
 (
 .rst            (aresetn),
 .clk            (aclk),
+.flush          (is_flush),
 .cache_ena      (inst_cache_ena),
 .m_araddr       (inst_cache_bridge_araddr),
 .m_arvalid      (inst_cache_bridge_arvalid),
@@ -217,6 +222,7 @@ data_cache_fifo data_cache_fifo_module
 .clk            (aclk),
 .rst            (aresetn),
 .cache_ena      (data_cache_ena),
+.flush          (is_flush),
 
 .m_araddr       (data_cache_bridge_araddr),
 .m_arvalid      (data_cache_bridge_arvalid),

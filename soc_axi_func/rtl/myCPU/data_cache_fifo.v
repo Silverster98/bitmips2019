@@ -40,7 +40,8 @@ module data_cache_fifo(
     
     input  [3:0]  s_awvalid      ,
     input  [31:0] s_wdata        ,
-    output        s_wready
+    output        s_wready       ,
+    input         flush
 );
   
 reg [23:0] set0_0_addr;
@@ -2001,7 +2002,7 @@ begin
     end else begin
         case(state)
         state_idle: begin
-            if(s_arvalid == 1'b1) begin
+            if(s_arvalid == 1'b1 && !flush) begin
                 is_read = 1'b1;
                 if(cache_ena == 1'b1) begin
                     find_cache();
@@ -2028,7 +2029,7 @@ begin
                     m_araddr_r <= s_addr_r;
                 end
             end
-            if(s_awvalid != 4'b0000) begin
+            if(s_awvalid != 4'b0000 && !flush) begin
                 if(cache_ena == 1'b1) begin
                     is_read = 1'b0;
                     find_cache();
