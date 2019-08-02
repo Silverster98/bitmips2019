@@ -1,7 +1,5 @@
 // common
-`define SRAM           1'b1
-`define test           1'b1
-`define cache          1'b1
+//`define inst_cache_2KB 1'b1
 `define RST_ENABLE     1'b0
 `define RST_DISABLE    1'b1
 `define STOP           1'b1           // stop
