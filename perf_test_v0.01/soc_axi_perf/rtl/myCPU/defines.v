@@ -1,5 +1,4 @@
 // common
-//`define inst_cache_2KB 1'b1
 `define RST_ENABLE     1'b0
 `define RST_DISABLE    1'b1
 `define STOP           1'b1           // stop
