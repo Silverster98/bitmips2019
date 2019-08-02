@@ -139,9 +139,8 @@ parameter [4:0] state_write_uncache_wait_finish = 5'b01110;
 parameter [4:0] state_write_empty = 5'b01111;
 parameter [4:0] state_write_miss_wait_write_tag = 5'b10000;
 parameter [4:0] state_read_miss_wait_write_tag = 5'b10001;
-parameter [4:0] state_write_hit_write_data = 5'b10010;
-parameter [4:0] state_read_hit_read_data = 5'b10011;
-parameter [4:0] state_write_miss_wait_finish_again = 5'b10100;
+//parameter [4:0] state_write_hit_write_data = 5'b10010;
+//parameter [4:0] state_write_miss_wait_finish_again = 5'b10100;
 
 task cacheline_byte_write_data_set0_0(input [3:0] wen, input [31:0] write_data);
 begin
@@ -2029,10 +2028,26 @@ begin
                 end
             end
             if(s_awvalid != 4'b0000) begin
+				is_read = 1'b0;
                 if(cache_ena == 1'b1) begin
-                    is_read = 1'b0;
                     find_cache();
-                    state <= state_write_hit_write_data;
+					if(hit) begin
+						s_wready_r <= 1'b1;
+						state <= state_write_hit;
+						cache_write_data(s_awvalid,s_wdata);
+					end else begin
+						if(dirty == 1'b1) begin
+							state <= state_write_miss_wait_write_burst;
+							m_awaddr_r <= get_set_tag_addr(s_addr_r);  
+							write_cacheline_to_ram(m_wdata_r);
+							m_awvalid_r <= 1'b1;
+							m_wvalid_r <= 1'b1;
+						end else begin
+							state <= state_write_miss_wait_read_burst;
+							m_arvalid_r <= 1'b1;
+							m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
+						end
+					end
                 end else begin
                     get_wdata();
                     state <= state_write_uncache_wait_ram;
@@ -2045,7 +2060,7 @@ begin
         end
         
         /* write cache*/
-        state_write_hit_write_data: begin
+        /*state_write_hit_write_data: begin
             if(hit) begin
                 s_wready_r <= 1'b1;
                 state <= state_write_hit;
@@ -2064,7 +2079,7 @@ begin
                     m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
                 end
             end
-        end
+        end*/
         state_write_miss_wait_write_burst: begin
             if(m_awready) begin m_awvalid_r = 1'b0; end // need wait awready?
 			if(m_wready && m_awvalid_r == 1'b0) begin
@@ -2099,16 +2114,22 @@ begin
         end
         state_write_miss_wait_finish: begin
             find_cache();
-            state <= state_write_miss_wait_finish_again;
+			if(hit == 1'b1) begin
+			    cache_write_data(s_awvalid,s_wdata);
+                s_wready_r = 1'b1;
+                state <= state_write_hit;
+                add_ptr();
+            end
+            //state <= state_write_miss_wait_finish_again;
         end 
-        state_write_miss_wait_finish_again: begin
+        /*state_write_miss_wait_finish_again: begin
             if(hit == 1'b1) begin
 			    cache_write_data(s_awvalid,s_wdata);
                 s_wready_r = 1'b1;
                 state <= state_write_hit;
                 add_ptr();
             end
-        end
+        end*/
         state_write_hit: begin
 			update_flag();
 			s_wready_r <= 1'b0;
