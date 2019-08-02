@@ -15,8 +15,8 @@ module inst_cache_fifo(
     input  [31:0] s_araddr       ,
     input         s_arvalid      ,
     output [31:0] s_rdata        ,
-    output        s_rvalid       
-
+    output        s_rvalid       ,       
+    input         flush
 
 );
 
@@ -566,7 +566,7 @@ begin
     if(rst == `RST_ENABLE) begin
         init();
     end else begin
-        if(state == state_idle && s_arvalid == 1'b1) begin
+        if(state == state_idle && s_arvalid == 1'b1 && !flush) begin
             get_s_araddr_r();
             if(cache_ena) begin
                 find_cache(hit_cache_data);
