@@ -1,70 +1,65 @@
 `include "defines.v"
 
 module ex(
-    input wire                   rst,
-    input wire                   clk,
-    input wire[`INST_ADDR_BUS]   pc_i,
-    input wire[`GPR_BUS]         rs_data_i,
-    input wire[`GPR_BUS]         rt_data_i,
-    input wire[`INST_BUS]        instr_i,
-    input wire[`ALUOP_BUS]       aluop_i,
-    input wire[`GPR_ADDR_BUS]    regfile_write_addr_i,
-    input wire                   now_in_delayslot_i,
-    input wire[`EXCEP_TYPE_BUS]  exception_type_i,
-    input wire                   regfile_write_enable_i,
-    input wire                   ram_write_enable_i,
-    input wire                   hi_write_enable_i,
-    input wire                   lo_write_enable_i,
-    input wire                   cp0_write_enable_i,
-    input wire[`GPR_BUS]         hilo_data_i,
-    input wire[`GPR_BUS]         cp0_data_i,
-    input wire                   mem_to_reg_i,
-    input wire[`INST_ADDR_BUS]   pc_return_addr_i,
-    input wire[`GPR_BUS]         sign_extend_imm16_i,
-    input wire[`GPR_BUS]         zero_extend_imm16_i,
-    input wire[`GPR_BUS]         load_upper_imm16_i,
+    input   wire                    rst,
+    input   wire                    clk,
+    input   wire[`INST_ADDR_BUS]    pc_i,
+    input   wire[`GPR_BUS]          rs_data_i,
+    input   wire[`GPR_BUS]          rt_data_i,
+    input   wire[`INST_BUS]         instr_i,
+    input   wire[`ALUOP_BUS]        aluop_i,
+    input   wire[`GPR_ADDR_BUS]     regfile_write_addr_i,
+    input   wire                    now_in_delayslot_i,
+    input   wire[`EXCEP_TYPE_BUS]   exception_type_i,
+    input   wire                    regfile_write_enable_i,
+    input   wire                    ram_write_enable_i,
+    input   wire                    hi_write_enable_i,
+    input   wire                    lo_write_enable_i,
+    input   wire                    cp0_write_enable_i,
+    input   wire[`GPR_BUS]          hilo_data_i,
+    input   wire[`GPR_BUS]          cp0_data_i,
+    input   wire                    mem_to_reg_i,
+    input   wire[`INST_ADDR_BUS]    pc_return_addr_i,
+    input   wire[`GPR_BUS]          sign_extend_imm16_i,
+    input   wire[`GPR_BUS]          zero_extend_imm16_i,
+    input   wire[`GPR_BUS]          load_upper_imm16_i,
     
-    input wire                   bypass_mem_hi_write_enable_i,
-    input wire[`GPR_BUS]         bypass_mem_hi_write_data_i,
-    input wire                   bypass_mem_lo_write_enable_i,
-    input wire[`GPR_BUS]         bypass_mem_lo_write_data_i,
-    input wire                   bypass_mem_cp0_write_enable_i,
-    input wire[`CP0_ADDR_BUS]    bypass_mem_cp0_write_addr_i,
-    input wire[`CP0_BUS]         bypass_mem_cp0_write_data_i,
-    input wire                   bypass_wb_hi_write_enable_i,
-    input wire[`GPR_BUS]         bypass_wb_hi_write_data_i,
-    input wire                   bypass_wb_lo_write_enable_i,
-    input wire[`GPR_BUS]         bypass_wb_lo_write_data_i,
-//    input wire                   bypass_wb_cp0_write_enable_i,
-//    input wire[`CP0_ADDR_BUS]    bypass_wb_cp0_write_addr_i,
-//    input wire[`CP0_BUS]         bypass_wb_cp0_write_data_i,
+    input   wire                    bypass_mem_hi_write_enable_i,
+    input   wire[`GPR_BUS]          bypass_mem_hi_write_data_i,
+    input   wire                    bypass_mem_lo_write_enable_i,
+    input   wire[`GPR_BUS]          bypass_mem_lo_write_data_i,
+    input   wire                    bypass_mem_cp0_write_enable_i,
+    input   wire[`CP0_ADDR_BUS]     bypass_mem_cp0_write_addr_i,
+    input   wire[`CP0_BUS]          bypass_mem_cp0_write_data_i,
+    input   wire                    bypass_wb_hi_write_enable_i,
+    input   wire[`GPR_BUS]          bypass_wb_hi_write_data_i,
+    input   wire                    bypass_wb_lo_write_enable_i,
+    input   wire[`GPR_BUS]          bypass_wb_lo_write_data_i,
     
-    input wire                   hilo_read_addr_i,
-    input wire[`CP0_ADDR_BUS]    cp0_read_addr_i,
+    input   wire                    hilo_read_addr_i,
+    input   wire[`CP0_ADDR_BUS]     cp0_read_addr_i,
     
-    output reg[`INST_ADDR_BUS]   pc_o,
-    output reg[`ALUOP_BUS]       aluop_o,
-    output reg                   now_in_delayslot_o,
-    output wire[`EXCEP_TYPE_BUS] exception_type_o,       ///
-    output reg                   regfile_write_enable_o,
-    output reg                   ram_write_enable_o,
-    output reg                   hi_write_enable_o,
-    output reg                   lo_write_enable_o,
-    output reg                   cp0_write_enable_o,
-    output reg[`GPR_ADDR_BUS]    regfile_write_addr_o,  ///
-//    output wire[`RAM_ADDR_BUS]   ram_write_addr_o,
-    output reg[`CP0_ADDR_BUS]    cp0_write_addr_o,
-    output reg[`GPR_BUS]         alu_data_o,
-    output reg[`GPR_BUS]         ram_write_data_o,
-    output reg[`GPR_BUS]         hi_write_data_o,
-    output reg[`GPR_BUS]         lo_write_data_o,
-    output reg[`GPR_BUS]         cp0_write_data_o,
-    output reg                   mem_to_reg_o,
-    output reg                   exe_stall_request_o
+    output  reg[`INST_ADDR_BUS]     pc_o,
+    output  reg[`ALUOP_BUS]         aluop_o,
+    output  reg                     now_in_delayslot_o,
+    output  wire[`EXCEP_TYPE_BUS]   exception_type_o,
+    output  reg                     regfile_write_enable_o,
+    output  reg                     ram_write_enable_o,
+    output  reg                     hi_write_enable_o,
+    output  reg                     lo_write_enable_o,
+    output  reg                     cp0_write_enable_o,
+    output  reg[`GPR_ADDR_BUS]      regfile_write_addr_o,
+    output  reg[`CP0_ADDR_BUS]      cp0_write_addr_o,
+    output  reg[`GPR_BUS]           alu_data_o,
+    output  reg[`GPR_BUS]           ram_write_data_o,
+    output  reg[`GPR_BUS]           hi_write_data_o,
+    output  reg[`GPR_BUS]           lo_write_data_o,
+    output  reg[`GPR_BUS]           cp0_write_data_o,
+    output  reg                     mem_to_reg_o,
+    output  reg                     exe_stall_request_o
     );
     
     reg is_overflow;
-    //wire exception_temp;
     assign exception_type_o = {exception_type_i[31:30], is_overflow, exception_type_i[28:0]};
     
     wire[`GPR_BUS] alu_output_data;
@@ -135,7 +130,6 @@ endfunction
             pc_o <= `ZEROWORD32;
             aluop_o <= 8'h00;
             now_in_delayslot_o <= 1'b0;
-            //exception_type_o <= `ZEROWORD32;
             regfile_write_enable_o <= 1'b0;
             ram_write_enable_o <= 1'b0;
             hi_write_enable_o <= 1'b0;
@@ -155,7 +149,6 @@ endfunction
             pc_o <= pc_i;
             aluop_o <= aluop_i;
             now_in_delayslot_o <= now_in_delayslot_i;
-            //exception_type_o <= exception_temp; // exception add overflow
             regfile_write_enable_o <= regfile_write_enable_i;
             ram_write_enable_o <= ram_write_enable_i;
             hi_write_enable_o <= hi_write_enable_i;
@@ -215,14 +208,6 @@ function [31:0] get_alu_data(input [7:0] aluop, input [31:0] instr, input [31:0]
         `ALUOP_SLTIU : begin
             get_alu_data = $unsigned(rs_value) < $unsigned(sign_extend_imm16);
         end
-//        `ALUOP_DIV : begin
-//        end
-//        `ALUOP_DIVU : begin
-//        end
-//        `ALUOP_MULT : begin
-//        end
-//        `ALUOP_MULU : begin
-//        end
         `ALUOP_AND : begin
             get_alu_data = rs_value & rt_value;
         end
@@ -271,13 +256,9 @@ function [31:0] get_alu_data(input [7:0] aluop, input [31:0] instr, input [31:0]
         `ALUOP_BLTZAL : begin
             get_alu_data = pc_return_addr;
         end
-//        `ALUOP_J : begin
-//        end
         `ALUOP_JAL : begin
             get_alu_data = pc_return_addr;
         end
-//        `ALUOP_JR : begin
-//        end
         `ALUOP_JALR : begin
             get_alu_data = pc_return_addr;
         end
@@ -287,14 +268,6 @@ function [31:0] get_alu_data(input [7:0] aluop, input [31:0] instr, input [31:0]
         `ALUOP_MFLO : begin
             get_alu_data = hilo_data_forward;
         end
-//        `ALUOP_MTHI : begin
-//        end
-//        `ALUOP_MTLO : begin
-//        end
-//        `ALUOP_BREAK : begin
-//        end
-//        `ALUOP_SYSCALL : begin
-//        end
         `ALUOP_LB : begin
             get_alu_data = rs_value + sign_extend_imm16;
         end
@@ -319,13 +292,9 @@ function [31:0] get_alu_data(input [7:0] aluop, input [31:0] instr, input [31:0]
         `ALUOP_SW : begin
             get_alu_data = rs_value + sign_extend_imm16;
         end
-//        `ALUOP_ERET : begin
-//        end
         `ALUOP_MFC0 : begin
             get_alu_data = cp0_data_forward;
         end
-//        `ALUOP_MTC0 : begin
-//        end
         default : begin
             get_alu_data = 0;
         end

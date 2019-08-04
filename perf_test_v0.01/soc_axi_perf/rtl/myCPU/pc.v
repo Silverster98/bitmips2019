@@ -10,7 +10,6 @@ input wire  [`INST_ADDR_BUS]  branch_addr_i,
 
 output wire [`EXCEP_TYPE_BUS] exception_type_o,
 output reg  [`INST_ADDR_BUS]  pc_o
-//    output reg cs_o
     );
     wire inst_stall, id_stall, exe_stall, data_stall;
     assign inst_stall = stall[0];
@@ -40,15 +39,6 @@ function [31:0] get_exception_type(input [31:0] ibus_addr/*input ibus_read, inpu
         if (ibus_addr[1:0] != 2'b00) begin
             get_exception_type = {1'b1,31'b0};
         end
-        /*else if (ibus_read && tlb_miss == 1) begin
-            get_exception_type = `CP0_EX_IF_TLBMISS;
-        end
-        else if (ibus_read  && tlb_ready && tlb_v == 0) begin
-            get_exception_type = `CP0_EX_IF_TLBINV;
-        end
-        else if (ibus_read  && tlb_ready && tlb_kern == 1 && iskernel == 0) begin
-            get_exception_type = `CP0_EX_IF_ADDRERR;
-        end*/
         else begin
             get_exception_type = `ZEROWORD32;
         end

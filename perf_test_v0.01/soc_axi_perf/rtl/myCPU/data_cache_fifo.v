@@ -40,7 +40,8 @@ module data_cache_fifo(
     
     input  [3:0]  s_awvalid      ,
     input  [31:0] s_wdata        ,
-    output        s_wready
+    output        s_wready       ,
+    input         flush
 );
   
 reg [23:0] set0_0_addr;
@@ -119,7 +120,6 @@ reg [1:0]   set3_hit_ptr;
 
 reg [4:0]   state;
 reg [3:0]   cacheline_ptr;
-//reg         is_empty;
 reg         is_read;
 parameter [4:0] state_idle = 5'b00000;
 parameter [4:0] state_read_hit = 5'b00001;
@@ -136,12 +136,10 @@ parameter [4:0] state_read_uncache_wait_ram= 5'b01011;
 parameter [4:0] state_read_uncache_wait_finish = 5'b01100;
 parameter [4:0] state_write_uncache_wait_ram = 5'b01101;
 parameter [4:0] state_write_uncache_wait_finish = 5'b01110;
-parameter [4:0] state_write_empty = 5'b01111;
-parameter [4:0] state_write_miss_wait_write_tag = 5'b10000;
-parameter [4:0] state_read_miss_wait_write_tag = 5'b10001;
-parameter [4:0] state_write_hit_write_data = 5'b10010;
-parameter [4:0] state_read_hit_read_data = 5'b10011;
-parameter [4:0] state_write_miss_wait_finish_again = 5'b10100;
+parameter [4:0] state_write_miss_wait_write_tag = 5'b01111;
+parameter [4:0] state_read_miss_wait_write_tag = 5'b10000;
+parameter [4:0] state_read_miss_handle_dirty = 5'b10001;
+parameter [4:0] state_write_miss_handle_dirty = 5'b10010;
 
 task cacheline_byte_write_data_set0_0(input [3:0] wen, input [31:0] write_data);
 begin
@@ -1552,93 +1550,44 @@ begin
 end
 endtask
 
-
-//task cacheline_byte_write_data(output [513:0] cacheline, input [3:0] wen, input [31:0] write_data);
-//begin
-//    if(hit) cacheline_ptr = s_addr[5:2];
-//    if(wen[3] == 1'b1) begin
-//    case(cacheline_ptr)
-//    4'h0:   cacheline[`addr_byte3_0]  =  write_data[31:24];
-//    4'h1:   cacheline[`addr_byte3_1]  =  write_data[31:24];
-//    4'h2:   cacheline[`addr_byte3_2]  =  write_data[31:24];
-//    4'h3:   cacheline[`addr_byte3_3]  =  write_data[31:24];
-//    4'h4:   cacheline[`addr_byte3_4]  =  write_data[31:24];
-//    4'h5:   cacheline[`addr_byte3_5]  =  write_data[31:24];
-//    4'h6:   cacheline[`addr_byte3_6]  =  write_data[31:24];
-//    4'h7:   cacheline[`addr_byte3_7]  =  write_data[31:24];
-//    4'h8:   cacheline[`addr_byte3_8]  =  write_data[31:24];
-//    4'h9:   cacheline[`addr_byte3_9]  =  write_data[31:24];
-//    4'ha:   cacheline[`addr_byte3_10] =  write_data[31:24];
-//    4'hb:   cacheline[`addr_byte3_11] =  write_data[31:24];
-//    4'hc:   cacheline[`addr_byte3_12] =  write_data[31:24];
-//    4'hd:   cacheline[`addr_byte3_13] =  write_data[31:24];
-//    4'he:   cacheline[`addr_byte3_14] =  write_data[31:24];
-//    4'hf:   cacheline[`addr_byte3_15] =  write_data[31:24];
-//    endcase
-//    end
-//    if(wen[2] == 1'b1) begin
-//    case(cacheline_ptr)
-//    4'h0:   cacheline[`addr_byte2_0]  =  write_data[23:16];
-//    4'h1:   cacheline[`addr_byte2_1]  =  write_data[23:16];
-//    4'h2:   cacheline[`addr_byte2_2]  =  write_data[23:16];
-//    4'h3:   cacheline[`addr_byte2_3]  =  write_data[23:16];
-//    4'h4:   cacheline[`addr_byte2_4]  =  write_data[23:16];
-//    4'h5:   cacheline[`addr_byte2_5]  =  write_data[23:16];
-//    4'h6:   cacheline[`addr_byte2_6]  =  write_data[23:16];
-//    4'h7:   cacheline[`addr_byte2_7]  =  write_data[23:16];
-//    4'h8:   cacheline[`addr_byte2_8]  =  write_data[23:16];
-//    4'h9:   cacheline[`addr_byte2_9]  =  write_data[23:16];
-//    4'ha:   cacheline[`addr_byte2_10] =  write_data[23:16];
-//    4'hb:   cacheline[`addr_byte2_11] =  write_data[23:16];
-//    4'hc:   cacheline[`addr_byte2_12] =  write_data[23:16];
-//    4'hd:   cacheline[`addr_byte2_13] =  write_data[23:16];
-//    4'he:   cacheline[`addr_byte2_14] =  write_data[23:16];
-//    4'hf:   cacheline[`addr_byte2_15] =  write_data[23:16];
-//    endcase
-//    end
-//    if(wen[1] == 1'b1) begin
-//    case(cacheline_ptr)
-//	4'h0:   cacheline[`addr_byte1_0]  =  write_data[15:8];
-//    4'h1:   cacheline[`addr_byte1_1]  =  write_data[15:8];
-//    4'h2:   cacheline[`addr_byte1_2]  =  write_data[15:8];
-//    4'h3:   cacheline[`addr_byte1_3]  =  write_data[15:8];
-//    4'h4:   cacheline[`addr_byte1_4]  =  write_data[15:8];
-//    4'h5:   cacheline[`addr_byte1_5]  =  write_data[15:8];
-//    4'h6:   cacheline[`addr_byte1_6]  =  write_data[15:8];
-//    4'h7:   cacheline[`addr_byte1_7]  =  write_data[15:8];
-//    4'h8:   cacheline[`addr_byte1_8]  =  write_data[15:8];
-//    4'h9:   cacheline[`addr_byte1_9]  =  write_data[15:8];
-//    4'ha:   cacheline[`addr_byte1_10] =  write_data[15:8];
-//    4'hb:   cacheline[`addr_byte1_11] =  write_data[15:8];
-//    4'hc:   cacheline[`addr_byte1_12] =  write_data[15:8];
-//    4'hd:   cacheline[`addr_byte1_13] =  write_data[15:8];
-//    4'he:   cacheline[`addr_byte1_14] =  write_data[15:8];
-//    4'hf:   cacheline[`addr_byte1_15] =  write_data[15:8];
-//    endcase
-//    end
-//    if(wen[0] == 1'b1) begin
-//    case(cacheline_ptr)
-//	4'h0:   cacheline[`addr_byte0_0]  =  write_data[7:0];
-//    4'h1:   cacheline[`addr_byte0_1]  =  write_data[7:0];
-//    4'h2:   cacheline[`addr_byte0_2]  =  write_data[7:0];
-//    4'h3:   cacheline[`addr_byte0_3]  =  write_data[7:0];
-//    4'h4:   cacheline[`addr_byte0_4]  =  write_data[7:0];
-//    4'h5:   cacheline[`addr_byte0_5]  =  write_data[7:0];
-//    4'h6:   cacheline[`addr_byte0_6]  =  write_data[7:0];
-//    4'h7:   cacheline[`addr_byte0_7]  =  write_data[7:0];
-//    4'h8:   cacheline[`addr_byte0_8]  =  write_data[7:0];
-//    4'h9:   cacheline[`addr_byte0_9]  =  write_data[7:0];
-//    4'ha:   cacheline[`addr_byte0_10] =  write_data[7:0];
-//    4'hb:   cacheline[`addr_byte0_11] =  write_data[7:0];
-//    4'hc:   cacheline[`addr_byte0_12] =  write_data[7:0];
-//    4'hd:   cacheline[`addr_byte0_13] =  write_data[7:0];
-//    4'he:   cacheline[`addr_byte0_14] =  write_data[7:0];
-//    4'hf:   cacheline[`addr_byte0_15] =  write_data[7:0];
-//    endcase
-//    end
-//    cacheline_ptr = cacheline_ptr + 4'b1;
-//end
-//endtask
+function [31:0] get_set_tag_addr(input [31:0] s_addr_r);
+begin
+    case (s_addr_r[7:6])
+    2'b00: begin
+        case(set0_hit_ptr)
+        2'b00: begin get_set_tag_addr = {set0_0_addr, 2'b00, 6'b0000}; end
+        2'b01: begin get_set_tag_addr = {set0_1_addr, 2'b00, 6'b0000}; end
+        2'b10: begin get_set_tag_addr = {set0_2_addr, 2'b00, 6'b0000}; end
+        2'b11: begin get_set_tag_addr = {set0_3_addr, 2'b00, 6'b0000}; end
+        endcase
+    end
+    2'b01: begin
+        case(set1_hit_ptr)
+        2'b00: begin get_set_tag_addr = {set1_0_addr, 2'b01, 6'b000000}; end
+        2'b01: begin get_set_tag_addr = {set1_1_addr, 2'b01, 6'b000000}; end
+        2'b10: begin get_set_tag_addr = {set1_2_addr, 2'b01, 6'b000000}; end
+        2'b11: begin get_set_tag_addr = {set1_3_addr, 2'b01, 6'b000000}; end
+        endcase
+    end
+    2'b10: begin
+        case(set2_hit_ptr)
+        2'b00: begin get_set_tag_addr = {set2_0_addr, 2'b10, 6'b000000}; end
+        2'b01: begin get_set_tag_addr = {set2_1_addr, 2'b10, 6'b000000}; end
+        2'b10: begin get_set_tag_addr = {set2_2_addr, 2'b10, 6'b000000}; end
+        2'b11: begin get_set_tag_addr = {set2_3_addr, 2'b10, 6'b000000}; end
+        endcase
+    end
+    2'b11: begin
+        case(set3_hit_ptr)
+        2'b00: begin get_set_tag_addr = {set3_0_addr, 2'b11, 6'b000000}; end
+        2'b01: begin get_set_tag_addr = {set3_1_addr, 2'b11, 6'b000000}; end
+        2'b10: begin get_set_tag_addr = {set3_2_addr, 2'b11, 6'b000000}; end
+        2'b11: begin get_set_tag_addr = {set3_3_addr, 2'b11, 6'b000000}; end
+        endcase
+    end
+    endcase
+end
+endfunction
 
 task cacheline_get_data(input [513:0] cacheline ,output [31:0] cacheline_data);
 begin
@@ -1752,34 +1701,34 @@ task cache_write_data(input [3:0] wen, input [31:0] wdata);
     case(set)
     2'b00: begin
            case(set0_hit_ptr)
-           2'b00:cacheline_byte_write_data_set0_0(wen, wdata);/*(set0_0,wen,wdata);*/
-           2'b01:cacheline_byte_write_data_set0_1(wen, wdata);/*(set0_1,wen,wdata);*/
-           2'b10:cacheline_byte_write_data_set0_2(wen, wdata);/*(set0_2,wen,wdata);*/
-           2'b11:cacheline_byte_write_data_set0_3(wen, wdata);/*(set0_3,wen,wdata);*/
+           2'b00:begin cacheline_byte_write_data_set0_0(wen, wdata); set0_dirty[0] = 1'b1; end
+           2'b01:begin cacheline_byte_write_data_set0_1(wen, wdata); set0_dirty[1] = 1'b1; end
+           2'b10:begin cacheline_byte_write_data_set0_2(wen, wdata); set0_dirty[2] = 1'b1; end
+           2'b11:begin cacheline_byte_write_data_set0_3(wen, wdata); set0_dirty[3] = 1'b1; end
            endcase
     end
     2'b01: begin
            case(set1_hit_ptr)
-           2'b00:cacheline_byte_write_data_set1_0(wen, wdata);/*(set1_0,wen,wdata);*/
-           2'b01:cacheline_byte_write_data_set1_1(wen, wdata);/*(set1_1,wen,wdata);*/
-           2'b10:cacheline_byte_write_data_set1_2(wen, wdata);/*(set1_2,wen,wdata);*/
-           2'b11:cacheline_byte_write_data_set1_3(wen, wdata);//(set1_3,wen,wdata);
+           2'b00:begin cacheline_byte_write_data_set1_0(wen, wdata); set1_dirty[0] = 1'b1; end
+           2'b01:begin cacheline_byte_write_data_set1_1(wen, wdata); set1_dirty[1] = 1'b1; end
+           2'b10:begin cacheline_byte_write_data_set1_2(wen, wdata); set1_dirty[2] = 1'b1; end
+           2'b11:begin cacheline_byte_write_data_set1_3(wen, wdata); set1_dirty[3] = 1'b1; end
            endcase
     end
     2'b10: begin
            case(set2_hit_ptr)
-           2'b00:cacheline_byte_write_data_set2_0(wen, wdata);//(set2_0,wen,wdata);
-           2'b01:cacheline_byte_write_data_set2_1(wen, wdata);//(set2_1,wen,wdata);
-           2'b10:cacheline_byte_write_data_set2_2(wen, wdata);//(set2_2,wen,wdata);
-           2'b11:cacheline_byte_write_data_set2_3(wen, wdata);//(set2_3,wen,wdata);
+           2'b00:begin cacheline_byte_write_data_set2_0(wen, wdata); set2_dirty[0] = 1'b1; end
+           2'b01:begin cacheline_byte_write_data_set2_1(wen, wdata); set2_dirty[1] = 1'b1; end
+           2'b10:begin cacheline_byte_write_data_set2_2(wen, wdata); set2_dirty[2] = 1'b1; end
+           2'b11:begin cacheline_byte_write_data_set2_3(wen, wdata); set2_dirty[3] = 1'b1; end
            endcase
     end
     2'b11: begin
            case(set3_hit_ptr)
-           2'b00:cacheline_byte_write_data_set3_0(wen, wdata);//(set3_0,wen,wdata);
-           2'b01:cacheline_byte_write_data_set3_1(wen, wdata);//(set3_1,wen,wdata);
-           2'b10:cacheline_byte_write_data_set3_2(wen, wdata);//(set3_2,wen,wdata);
-           2'b11:cacheline_byte_write_data_set3_3(wen, wdata);//(set3_3,wen,wdata);
+           2'b00:begin cacheline_byte_write_data_set3_0(wen, wdata); set3_dirty[0] = 1'b1; end
+           2'b01:begin cacheline_byte_write_data_set3_1(wen, wdata); set3_dirty[1] = 1'b1; end
+           2'b10:begin cacheline_byte_write_data_set3_2(wen, wdata); set3_dirty[2] = 1'b1; end
+           2'b11:begin cacheline_byte_write_data_set3_3(wen, wdata); set3_dirty[3] = 1'b1; end
            endcase
     end
     endcase
@@ -1981,7 +1930,23 @@ always @(posedge clk)
 begin
     if(rst == `RST_ENABLE) begin
         init();    
-        set0_0 <= 514'b0;
+        set0_0_addr <= 24'b0;
+        set0_1_addr <= 24'b0;
+        set0_2_addr <= 24'b0;
+        set0_3_addr <= 24'b0;
+        set1_0_addr <= 24'b0;
+        set1_1_addr <= 24'b0;
+        set1_2_addr <= 24'b0;
+        set1_3_addr <= 24'b0;
+        set2_0_addr <= 24'b0;
+        set2_1_addr <= 24'b0;
+        set2_2_addr <= 24'b0;
+        set2_3_addr <= 24'b0;
+        set3_0_addr <= 24'b0;
+        set3_1_addr <= 24'b0;
+        set3_2_addr <= 24'b0;
+        set3_3_addr <= 24'b0;
+        /*set0_0 <= 514'b0;
         set1_0 <= 514'b0;
         set2_0 <= 514'b0;
         set3_0 <= 514'b0;
@@ -1996,12 +1961,12 @@ begin
         set0_3 <= 514'b0;
         set1_3 <= 514'b0;
         set2_3 <= 514'b0;
-        set3_3 <= 514'b0;
+        set3_3 <= 514'b0;*/
         state <= state_idle;
     end else begin
         case(state)
         state_idle: begin
-            if(s_arvalid == 1'b1) begin
+            if(s_arvalid == 1'b1 && !flush) begin
                 is_read = 1'b1;
                 if(cache_ena == 1'b1) begin
                     find_cache();
@@ -2010,17 +1975,7 @@ begin
                         s_rvalid_r <= 1'b1;
                         state <= state_read_hit;
                     end else begin
-                        if(dirty == 1'b1) begin
-                            state <= state_read_miss_wait_write_burst;
-                            m_awaddr_r <=  get_set_tag_addr(s_addr_r);//{s_addr_r[31:6],6'b00_0000}; // 
-                            write_cacheline_to_ram(m_wdata_r);
-                            m_awvalid_r <= 1'b1;
-                            m_wvalid_r <= 1'b1;
-                        end else begin
-                            state <= state_read_miss_wait_read_burst;
-                            m_arvalid_r <= 1'b1;
-                            m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
-                        end
+                        state <= state_read_miss_handle_dirty;
                     end
                 end else begin
                     state <= state_read_uncache_wait_ram;
@@ -2028,11 +1983,17 @@ begin
                     m_araddr_r <= s_addr_r;
                 end
             end
-            if(s_awvalid != 4'b0000) begin
+            if(s_awvalid != 4'b0000 && !flush) begin
+				is_read = 1'b0;
                 if(cache_ena == 1'b1) begin
-                    is_read = 1'b0;
                     find_cache();
-                    state <= state_write_hit_write_data;
+					if(hit) begin
+						s_wready_r <= 1'b1;
+						state <= state_write_hit;
+						cache_write_data(s_awvalid,s_wdata);
+					end else begin
+						state <= state_write_miss_handle_dirty;
+					end
                 end else begin
                     get_wdata();
                     state <= state_write_uncache_wait_ram;
@@ -2043,26 +2004,18 @@ begin
                 end
             end
         end
-        
         /* write cache*/
-        state_write_hit_write_data: begin
-            if(hit) begin
-                s_wready_r <= 1'b1;
-                state <= state_write_hit;
-                cache_write_data(s_awvalid,s_wdata);
+        state_write_miss_handle_dirty: begin
+            if(dirty == 1'b1) begin
+                state <= state_write_miss_wait_write_burst;
+                m_awaddr_r <= get_set_tag_addr(s_addr_r);  
+                write_cacheline_to_ram(m_wdata_r);
+                m_awvalid_r <= 1'b1;
+                m_wvalid_r <= 1'b1;
             end else begin
-                if(dirty == 1'b1) begin
-                    state <= state_write_miss_wait_write_burst;
-                    // m_awaddr_r <=  {s_addr_r[31:6],6'b00_0000};
-                    m_awaddr_r <= get_set_tag_addr(s_addr_r);  // 
-                    write_cacheline_to_ram(m_wdata_r);
-                    m_awvalid_r <= 1'b1;
-                    m_wvalid_r <= 1'b1;
-                end else begin
-                    state <= state_write_miss_wait_read_burst;
-                    m_arvalid_r <= 1'b1;
-                    m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
-                end
+                state <= state_write_miss_wait_read_burst;
+                m_arvalid_r <= 1'b1;
+                m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
             end
         end
         state_write_miss_wait_write_burst: begin
@@ -2099,16 +2052,13 @@ begin
         end
         state_write_miss_wait_finish: begin
             find_cache();
-            state <= state_write_miss_wait_finish_again;
-        end 
-        state_write_miss_wait_finish_again: begin
-            if(hit == 1'b1) begin
+			if(hit == 1'b1) begin
 			    cache_write_data(s_awvalid,s_wdata);
                 s_wready_r = 1'b1;
-                state <= state_write_hit;
+                state = state_write_hit;
                 add_ptr();
             end
-        end
+        end 
         state_write_hit: begin
 			update_flag();
 			s_wready_r <= 1'b0;
@@ -2136,6 +2086,19 @@ begin
 		end
 		
         /* read cache*/
+        state_read_miss_handle_dirty: begin
+            if(dirty == 1'b1) begin
+                state <= state_read_miss_wait_write_burst;
+                m_awaddr_r <=  get_set_tag_addr(s_addr_r);
+                write_cacheline_to_ram(m_wdata_r);
+                m_awvalid_r <= 1'b1;
+                m_wvalid_r <= 1'b1;
+            end else begin
+                state <= state_read_miss_wait_read_burst;
+                m_arvalid_r <= 1'b1;
+                m_araddr_r <= {s_addr_r[31:6],6'b00_0000};
+            end
+        end
         state_read_miss_wait_write_burst: begin
 			if(m_awready) begin m_awvalid_r = 1'b0; end// need wait awrewady?
 			if(m_wready && m_awvalid_r == 1'b0) begin
@@ -2196,7 +2159,6 @@ begin
             s_rdata_r  <= hit_cache_data;    
             state <= state_read_hit;
         end
-        
 		default: ;
         endcase
    end
@@ -2235,52 +2197,11 @@ assign m_wlast = m_wlast_r;
 assign m_wvalid = m_wvalid_r;
 assign m_wdata = m_wdata_r;
 assign m_wstrb = cache_ena ? 4'b1111 : s_awvalid;
-//assign m_wstrb = 4'b1111;
 
 assign m_bready = 1'b1;
 
 assign s_wready = s_wready_r;
 assign s_rdata = s_rdata_r;
 assign s_rvalid = s_rvalid_r;
-
-
-function [31:0] get_set_tag_addr(input [31:0] s_addr_r);
-begin
-    case (s_addr_r[7:6])
-    2'b00: begin
-        case(set0_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set0_0_addr, 2'b00, 6'b0000}; end
-        2'b01: begin get_set_tag_addr = {set0_1_addr, 2'b00, 6'b0000}; end
-        2'b10: begin get_set_tag_addr = {set0_2_addr, 2'b00, 6'b0000}; end
-        2'b11: begin get_set_tag_addr = {set0_3_addr, 2'b00, 6'b0000}; end
-        endcase
-    end
-    2'b01: begin
-        case(set1_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set1_0_addr, 2'b01, 6'b000000}; end
-        2'b01: begin get_set_tag_addr = {set1_1_addr, 2'b01, 6'b000000}; end
-        2'b10: begin get_set_tag_addr = {set1_2_addr, 2'b01, 6'b000000}; end
-        2'b11: begin get_set_tag_addr = {set1_3_addr, 2'b01, 6'b000000}; end
-        endcase
-    end
-    2'b10: begin
-        case(set2_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set2_0_addr, 2'b10, 6'b000000}; end
-        2'b01: begin get_set_tag_addr = {set2_1_addr, 2'b10, 6'b000000}; end
-        2'b10: begin get_set_tag_addr = {set2_2_addr, 2'b10, 6'b000000}; end
-        2'b11: begin get_set_tag_addr = {set2_3_addr, 2'b10, 6'b000000}; end
-        endcase
-    end
-    2'b11: begin
-        case(set3_hit_ptr)
-        2'b00: begin get_set_tag_addr = {set3_0_addr, 2'b11, 6'b000000}; end
-        2'b01: begin get_set_tag_addr = {set3_1_addr, 2'b11, 6'b000000}; end
-        2'b10: begin get_set_tag_addr = {set3_2_addr, 2'b11, 6'b000000}; end
-        2'b11: begin get_set_tag_addr = {set3_3_addr, 2'b11, 6'b000000}; end
-        endcase
-    end
-    endcase
-end
-endfunction
 
 endmodule

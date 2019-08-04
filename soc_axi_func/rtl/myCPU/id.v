@@ -102,6 +102,7 @@ begin
 	else if(rs_read_enable == 1'b1)
 		rs_data_o <= rs_data_i;
 	else rs_data_o <= 32'h0;
+    
 end
 
 always @ (*)

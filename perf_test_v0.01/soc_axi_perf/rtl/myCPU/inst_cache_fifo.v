@@ -15,8 +15,8 @@ module inst_cache_fifo(
     input  [31:0] s_araddr       ,
     input         s_arvalid      ,
     output [31:0] s_rdata        ,
-    output        s_rvalid       
-
+    output        s_rvalid       ,       
+    input         flush
 
 );
 
@@ -90,12 +90,11 @@ begin
     4'hc:   cacheline[`addr12] =  m_rdata;
     4'hd:   cacheline[`addr13] =  m_rdata;
     4'he:   cacheline[`addr14] =  m_rdata;
-    4'hf:   begin cacheline[`addr15] =  m_rdata; cacheline[`addr_tag] = s_araddr_r[31:8]; end
-    endcase
+	4'hf:   begin cacheline[`addr15] =  m_rdata; cacheline[`addr_tag] = s_araddr_r[31:8]; end
+	endcase
     cacheline_ptr = cacheline_ptr + 4'h1;
 end
 endtask
-
 
 
 task find_set0(output [31:0] data);
@@ -178,7 +177,7 @@ reg [31:0] set3_data;
 
 task find_cache(output [31:0] data);
 begin
-    case(s_araddr_r[7:6])
+	case(s_araddr_r[7:6])
     2'b00: find_set0(set0_data);
     2'b01: find_set1(set1_data);
     2'b10: find_set2(set2_data);
@@ -248,8 +247,9 @@ task cache_write_data();
     2'b10: begin set2_write_data(); end
     2'b11: begin set3_write_data(); end
     endcase
-        
 endtask
+
+
 
 reg [31:0] hit_cache_data;
 reg        s_rvalid_r;
@@ -286,7 +286,7 @@ begin
     if(rst == `RST_ENABLE) begin
         init();
     end else begin
-        if(state == state_idle && s_arvalid == 1'b1) begin
+        if(state == state_idle && s_arvalid == 1'b1 && !flush) begin
             get_s_araddr_r();
             if(cache_ena) begin
                 find_cache(hit_cache_data);
@@ -312,7 +312,7 @@ begin
                set1_hit <= 1'b0;
                set2_hit <= 1'b0;
                set3_hit <= 1'b0;
-               hit <= 1'b0;
+			   hit <= 1'b0;
                s_rvalid_r <= 1'b0;
                state <= state_idle;
         end else if(state == state_wait_ram) begin
