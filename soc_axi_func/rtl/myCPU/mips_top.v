@@ -1,29 +1,28 @@
 `include "defines.v"
 
 module mips_top(
-    input wire clk,
-    input wire rst,
+    input   wire        clk,
+    input   wire        rst,
     
-    input wire[5:0] interrupt,
-    output wire time_int_out,
-    output [2:0] int,
-    output  [31:0]  inst_sram_addr,
-    input   [31:0]  inst_sram_rdata,
+    input   wire[5:0]   interrupt,
+    output  wire        time_int_out,
+    output  [31:0]      inst_sram_addr,
+    input   [31:0]      inst_sram_rdata,
     
-    output          data_sram_ren,
-    output  [3:0]   data_sram_wen,
-    output  [31:0]  data_sram_addr,
-    output  [31:0]  data_sram_wdata,
-    input   [31:0]  data_sram_rdata,
+    output              data_sram_ren,
+    output  [3:0]       data_sram_wen,
+    output  [31:0]      data_sram_addr,
+    output  [31:0]      data_sram_wdata,
+    input   [31:0]      data_sram_rdata,
     
-    output[31:0] debug_wb_pc,
-    output[3:0] debug_wb_wen,
-    output[4:0] debug_wb_num,
-    output[31:0] debug_wb_data,
+    output  [31:0]      debug_wb_pc,
+    output  [3:0]       debug_wb_wen,
+    output  [4:0]       debug_wb_num,
+    output  [31:0]      debug_wb_data,
     
-    input wire inst_stall,
-    input wire data_stall,
-    output flush
+    input   wire        inst_stall,
+    input   wire        data_stall,
+    output              flush
     );
     
     wire[`INST_ADDR_BUS] if_pc_if_id;
@@ -144,7 +143,6 @@ module mips_top(
     assign data_sram_wdata = mem_ram_write_data;
     assign ram_read_data = data_sram_rdata;
     
-    //assign debug_wb_wen = 4'b0000/*(rst == `RST_ENABLE) ? 4'b0000 : {4{mem_wb_regfile_write_enable}}*/;
     wire stall_all;
     assign stall_all = data_stall || exe_stall_request || inst_stall;
     assign debug_wb_wen = ((rst == `RST_ENABLE || stall_all == 1'b1) && flush == 1'b0) ? 4'b0000 : {4{mem_wb_regfile_write_enable}};
@@ -183,7 +181,6 @@ module mips_top(
     
     id mips_id(
         .rst(rst),
-//        .rst(rst & (~id_ex_now_in_delayslot_ex)),
         .instr_i(if_id_instr_id),
         .pc_i(if_id_pc_id),
         .rs_data_i(regfile_rs_data_id),
@@ -475,7 +472,6 @@ module mips_top(
         .hilo_read_data_o(hilo_data_id_ex)
     );
     
-    //==
     cp0 mips_cp0(
         .clk(clk),
         .rst(rst),
