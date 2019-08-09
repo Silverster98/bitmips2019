@@ -1,7 +1,13 @@
 # NSCSCC bit-mips 2019
-本仓库维护NSCSCC比赛初期的参赛作品代码，当前是采用5级流水线的架构。最终参赛作品可能不是本仓库代码。但本仓库会实现一个完整的能够满足比赛要求的作品。
+> 本仓库为 bit 2019 NSCSCC 参赛作品。
 
-### 目录结构：
+### master 分支
+最终提交作品是位于 master 分支的代码。master 分支自实现 cache。
+
+### system_cache 分支
+该分支使用system cache ip 核，并且若日后实现 tlb 也在该分支。
+
+### master 目录结构：
 |- bitmips2019
 
 |--- bitmips/ mips具体实现的 vivado 项目
